@@ -1,0 +1,97 @@
+.sidebar {
+    background-color: #f8f9fa;
+    padding: 20px;
+    height: 100%;
+  }
+
+  .sidebar ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .sidebar ul li {
+    padding: 8px 0;
+  }
+
+  .news-title {
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: white;
+  }
+
+  .top-news img {
+    max-height: 325px;
+    position: relative;
+    overflow: hidden;
+    width: 60%;
+    border-radius: 8px;
+  }
+
+  .headline-text {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    background-color: rgba(0,0,0,0.6);
+    padding: 10px 15px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+  .navbar-brand img {
+    height: 90px;
+  }
+
+  .main-news {
+    height: auto;
+    width: 100%;
+    border-radius: 8px;
+  }
+
+  .section-title {
+    font-weight: bold;
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.news-card img {
+    height: 180px;
+    width: 100%;
+    object-fit: cover;
+    border-radius: 5px 5px 0 0;
+}
+
+.news-card .card-body {
+    padding: 15px;
+}
+
+.news-card .badge {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+.news-card {
+    border: none;
+    box-shadow: none;
+}
+
+.badge-news {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;         /* sama kayak m-0 */
+    background-color: #0d6efd; /* sama kayak bg-primary */
+    color: white;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    border-radius: 5px;
+    z-index: 1;
+  }
+
+  .card-text {
+    text-align: left;
+  }
