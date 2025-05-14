@@ -1,66 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link rel="stylesheet" href="{{ asset('css/loginstyle.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/footer.css') }}">
+    <title>Login - Winnews</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/footer.css') }}">
 </head>
 <body>
-    <div class="wrapper">
-        <div class="modal-container">
-            <div class="modal-header">
-                <h2 class="modal-title">Welcome to Winnews!</h2>
-            </div>
+    <div class="login-page d-flex align-items-center justify-content-center" style="min-height: 100vh; background-color: #333333;">
 
-            <div class="modal-body">
-                <p>Log in to your account to read the latest news and also discuss in the comments column!</p>
+<div class="card shadow p-4" style="max-width: 400px; width: 100%; border-radius: 16px; background-color: #ffffff">
+    <h2 class="mb-4 text-center">Sign in</h2>
 
-                {{-- action="{{ route('login') }}"DISAMPING  METHOD--}}
-                <form method="POST">
-                    @csrf
-
-                    <div class="form-group">
-                        <input type="email" class="form-control @error('email') is-invalid @enderror"
-                            name="email" value="{{ old('email') }}" placeholder="Email" required autofocus>
-                        @error('email')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <input type="password" class="form-control @error('password') is-invalid @enderror"
-                            name="password" placeholder="Password" required>
-                        @error('password')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                        @enderror
-                    </div>
-
-                    <button type="submit" class="login-button">Log In</button>
-
-                    <div class="remember-me">
-                        <input type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-                        <label for="remember">Remember me for 30 days</label>
-                    </div>
-
-                    <div class="forgot-password">
-                        <a href="">Forgot Password?</a>
-                        {{-- "{{ route('password.request') }}" DIDALAM HREF--}}
-                    </div>
-
-                    <div class="register-link">
-                        Belum punya akun? <a href="{{ route('register') }}">Register</a>
-                    </div>
-                </form>
-            </div>
+    <form>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email address</label>
+            <input type="email" class="form-control" id="email" placeholder="name@gmail.com">
         </div>
+
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" placeholder="********">
+        </div>
+
+        <button type="submit" class="btn btn-dark w-100">Sign In</button>
+    </form>
+
+    <p class="text-center mt-3">
+        Belum punya akun? <a href="{{ route('register') }}">Register</a>
+    </p>
+</div>
     </div>
-    @include('layouts.footer')
+@include('layouts.footer')
 </body>
 </html>
