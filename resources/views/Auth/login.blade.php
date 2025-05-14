@@ -10,8 +10,8 @@
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/footer.css') }}">
 </head>
-<body>
-    <div class="login-page d-flex align-items-center justify-content-center" style="min-height: 100vh; background-color: #333333;">
+<body style="background-color: #363535;">
+    <div class="login-page d-flex align-items-center justify-content-center" style="min-height: 100vh;">
 
 <div class="card shadow p-4" style="max-width: 400px; width: 100%; border-radius: 16px; background-color: #ffffff">
     <h2 class="mb-4 text-center">Sign in</h2>
