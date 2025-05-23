@@ -7,9 +7,19 @@
     <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
   </form>
 
-  <!-- Tombol Sign In -->
-  <a href="{{ route('login') }}" class="btn btn-outline-light me-2">Sign In</a>
+  @auth
+    <span class="navbar-text text-light me-3">
+      Selamat datang, {{ auth()->user()->name }}!
+    </span>
+    <form method="POST" action="{{ route('logout') }}" class="d-inline">
+      @csrf
+      <button type="submit" class="btn btn-outline-light">Logout</button>
+    </form>
+  @else
+    <!-- Tombol Sign In -->
+    <a href="{{ route('login') }}" class="btn btn-outline-light me-2">Sign In</a>
 
-  <!-- Tombol Register -->
-  <a href="{{ route('register') }}" class="btn btn-light">Register</a>
+    <!-- Tombol Register -->
+    <a href="{{ route('register') }}" class="btn btn-light">Register</a>
+  @endauth
 </nav>

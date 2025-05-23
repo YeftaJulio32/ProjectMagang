@@ -16,18 +16,39 @@
 <div class="card shadow p-4" style="max-width: 400px; width: 100%; border-radius: 16px; background-color: #ffffff">
     <h2 class="mb-4 text-center">Sign up</h2>
 
-    <form>
+    <form method="POST" action="{{ route('register') }}">
+        @csrf
+        <div class="mb-3">
+            <label for="name" class="form-label">Full Name</label>
+            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" placeholder="Your full name" value="{{ old('name') }}" required>
+            @error('name')
+                <div class="invalid-feedback">
+                    {{ $message }}
+                </div>
+            @enderror
+        </div>
         <div class="mb-3">
             <label for="email" class="form-label">Email address</label>
-            <input type="email" class="form-control" id="email" placeholder="name@gmail.com">
+            <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" placeholder="name@gmail.com" value="{{ old('email') }}" required>
+            @error('email')
+                <div class="invalid-feedback">
+                    {{ $message }}
+                </div>
+            @enderror
         </div>
 
         <div class="mb-3">
             <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password" placeholder="********">
+            <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password" placeholder="********" required>
+            @error('password')
+                <div class="invalid-feedback">
+                    {{ $message }}
+                </div>
+            @enderror
         </div>
 
         <button type="submit" class="btn btn-dark w-100">Create Account</button>
+        <a href="{{ url('/') }}" class="btn btn-secondary mt-3 w-100">Cancel</a>
     </form>
 
     <p class="text-center mt-3">
