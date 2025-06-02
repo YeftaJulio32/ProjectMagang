@@ -42,9 +42,13 @@
           <div class="row g-3">
             <!-- Gambar Utama -->
             <div class="col-md-8 position-relative">
-              <img src="{{ asset('images/berita1.jpeg') }}" class="img-fluid w-100" alt="Berita Utama">
+              <img src="https://lh3.googleusercontent.com/d/{{ $headline['gambar'] ?? '' }}" class="img-fluid w-100" alt="Berita Utama">
               <div class="bottom-0 start-0 p-3 text-white" style="background: rgba(0, 0, 0, 0.5); width: 100%;">
-                <h5 class="mb-0">Jalan utama Batutulis Bogor ditutup karena bencana</h5>
+                <h5 class="mb-0">
+                  <a href="{{ route('news.show', $headline['id']) }}" class="text-white text-decoration-none">
+                    {{ $headline['judul'] ?? 'Judul tidak tersedia' }}
+                  </a>
+                </h5>
               </div>
             </div>
 
@@ -52,9 +56,13 @@
             <div class="col-md-4 bg-dark text-white p-3">
               <h6>Terbaru</h6>
               <ol class="ps-3">
-                <li class="mb-2">Ledakan dahsyat di pelabuhan terbesar, 40 orang tewas</li>
-                <li class="mb-2">Korut konfirmasi telah kirim pasukan ke Rusia</li>
-                <li class="mb-2">Mobil listrik sudah mulai banyak digunakan di Indonesia</li>
+                @foreach ($groupedNews->flatten(1)->take(5) as $news)
+                  <li class="mb-2">
+                    <a href="{{ route('news.show', $news['id']) }}" class="text-white text-decoration-none">
+                      {{ \Illuminate\Support\Str::limit($news['judul'], 60) }}
+                    </a>
+                  </li>
+                @endforeach
               </ol>
             </div>
           </div>
@@ -63,16 +71,20 @@
         <div class="mt-5">
           <h5 class="section-title text-white">Berita terbaru</h5>
           <div class="row row-cols-1 row-cols-md-3 g-4">
-            @for ($i = 0; $i < 6; $i++)
+           @php
+              $latestNews = $groupedNews->flatten(1)->take(6);
+            @endphp
+
+            @foreach ($latestNews as $item)
               <div class="col">
                 <div class="card news-card h-100">
-                  <img src="{{ asset('images/berita2.jpeg') }}" class="card-img-top" alt="News Image">
+                  <img src="https://lh3.googleusercontent.com/d/{{ $item['gambar'] ?? '' }}" class="card-img-top" alt="News Image">
                   <div class="card-body">
-                    <p class="card-text">Rapat anggota 2025 komite olimpiade Indonesia</p>
+                    <p class="card-text">{{ $item['judul'] ?? 'Judul tidak tersedia' }}</p>
                   </div>
                 </div>
               </div>
-            @endfor
+            @endforeach
           </div>
         </div>
       </div>
