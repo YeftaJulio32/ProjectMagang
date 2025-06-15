@@ -4,7 +4,7 @@
 
 - `composer update`
 - `cp .env.example .env`
-- `atur env`
+- atur env
 - `php artisan key:generate`
 - `php artisan migrate:fresh --seed`
 - `php artisan serve`
