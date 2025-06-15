@@ -1,92 +1,128 @@
-<!DOCTYPE html>
-<html lang="id">
+@extends('layouts.app')
 
+@section('title', $news['judul'] ?? 'Detail Berita')
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ $news['judul'] ?? 'Detail Berita' }} | Winnews</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="{{ asset('css/homepage.css') }}">
-  <link rel="stylesheet" href="{{ asset('css/footer.css') }}">
-  <link rel="stylesheet" href="{{ asset('css/header.css') }}">
-</head>
+@section('content')
+<div class="container my-5">
+    <div class="row g-5">
+        <!-- ======================================= -->
+        <!--        KOLOM KONTEN UTAMA (KIRI)        -->
+        <!-- ======================================= -->
+        <div class="col-lg-8">
+            <article>
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url('/') }}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="#">{{ $news['kategori'] ?? 'Kategori' }}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ \Illuminate\Support\Str::limit($news['judul'] ?? '...', 30) }}</li>
+                    </ol>
+                </nav>
 
-<body class="bg-dark text-light">
-    <!-- Navigation Header -->
-    @include('layouts.header')
+                <!-- Kategori Berita -->
+                <a href="#" class="badge text-bg-primary text-decoration-none mb-3 fs-6">{{ $news['kategori'] ?? '-' }}</a>
 
-    <!-- Hero Section -->
-    <section class="bg-dark border-bottom py-4">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-7 mb-3 mb-lg-0">
-                    <h1 class="fw-bold text-white mb-3" style="font-size:2rem;">
-                        {{ $news['judul'] ?? 'Judul tidak tersedia' }}
-                    </h1>
-                    <span class="badge bg-warning text-dark mb-2">{{ $news['kategori'] ?? '-' }}</span>
-                </div>
-                <div class="col-lg-5 text-center">
-                    <img src="https://lh3.googleusercontent.com/d/{{ $news['gambar'] ?? '' }}" alt="Gambar Berita"
-                        class="img-fluid rounded shadow" style="max-height:240px;object-fit:cover;width:100%;">
-                </div>
-            </div>
-        </div>
-    </section>
+                <!-- Judul Artikel -->
+                <h1 class="display-5 fw-bolder mb-3">{{ $news['judul'] ?? 'Judul tidak tersedia' }}</h1>
 
-    <!-- Main Content -->
-    <div class="container my-5">
-        <!-- Article Content -->
-        <div class="mb-4">
-            <div class="fs-5 lh-lg bg-secondary bg-opacity-10 rounded p-4 text-light">
-                {!! $news['deskripsi'] !!}
-            </div>
-        </div>
-
-        <!-- Related News Section -->
-        <div class="mt-5 pt-4 border-top">
-            <h4 class="mb-4 text-white">Berita lain di kategori: <span
-                    class="text-warning">{{ $news['kategori'] ?? '-' }}</span></h4>
-            <div class="row row-cols-1 row-cols-md-2 g-4">
-                @foreach ($otherNews as $item)
-                    <div class="col">
-                        <div class="card h-100 bg-secondary bg-opacity-25 border-0 shadow-sm">
-                            <img src="https://lh3.googleusercontent.com/d/{{ $item['gambar'] ?? '' }}"
-                                class="card-img-top" alt="...">
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title text-white">{{ $item['judul'] }}</h5>
-                                <a href="{{ route('news.show', $item['id']) }}"
-                                    class="btn btn-outline-light mt-auto">Lihat</a>
-                            </div>
+                <!-- Info Penulis, Tanggal & Tombol Share -->
+                <div class="d-flex flex-wrap align-items-center justify-content-between border-top border-bottom py-3 mb-4">
+                    <div class="d-flex align-items-center mb-2 mb-md-0">
+                        <img src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=1780&auto=format&fit=crop" class="rounded-circle me-2" alt="Author" style="width:40px; height:40px; object-fit:cover;">
+                        <div>
+                            <span class="fw-semibold">Tim Winnews</span>
+                            <div class="text-body-secondary small">Dipublikasikan pada {{ \Carbon\Carbon::parse($news['created_at'] ?? now())->isoFormat('D MMMM YYYY, HH:mm') }} WIB</div>
                         </div>
                     </div>
-                @endforeach
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="small me-2">Bagikan:</span>
+                        <a href="#" class="btn btn-outline-secondary btn-sm" title="Bagikan ke Facebook"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="btn btn-outline-secondary btn-sm" title="Bagikan ke Twitter"><i class="bi bi-twitter-x"></i></a>
+                        <a href="#" class="btn btn-outline-secondary btn-sm" title="Bagikan ke WhatsApp"><i class="bi bi-whatsapp"></i></a>
+                        <a href="#" class="btn btn-outline-secondary btn-sm" title="Salin Tautan"><i class="bi bi-link-45deg"></i></a>
+                    </div>
+                </div>
+
+                <!-- Gambar Utama Berita -->
+                <figure class="mb-4">
+                    <img src="https://lh3.googleusercontent.com/d/{{ $news['gambar'] ?? '' }}"
+                         alt="{{ $news['judul'] ?? 'Gambar Berita' }}"
+                         class="img-fluid rounded-3 shadow"
+                         onerror="this.onerror=null;this.src='https://placehold.co/800x450/343a40/dee2e6?text=Gambar+Tidak+Tersedia';">
+                </figure>
+
+                <!-- Isi Konten Artikel -->
+                <section class="fs-5 lh-lg article-content">
+                    {!! $news['deskripsi'] ?? '<p>Konten berita tidak tersedia.</p>' !!}
+                </section>
+            </article>
+
+            <hr class="my-5">
+
+            <!-- Bagian Komentar -->
+            <section id="komentar">
+                <h3 class="mb-4 fw-bold">Komentar</h3>
+
+                <!-- Form untuk Menulis Komentar -->
+                <div class="card mb-4 bg-body-tertiary border-0">
+                    <div class="card-body">
+                           <form>
+                                <textarea class="form-control" rows="3" placeholder="Tulis komentar Anda sebagai Guest..."></textarea>
+                                <button type="submit" class="btn btn-primary mt-2 float-end">Kirim Komentar</button>
+                           </form>
+                    </div>
+                </div>
+
+                <!-- Daftar Komentar yang Sudah Ada -->
+                <div class="d-flex flex-column gap-4">
+                    {{-- Contoh jika ada data komentar --}}
+                    @forelse ($news['comments'] ?? [] as $comment)
+                    <div class="d-flex gap-3">
+                        <img src="https://placehold.co/50x50/dee2e6/343a40?text={{ strtoupper(substr($comment['user_name'], 0, 1)) }}" class="rounded-circle" alt="{{ $comment['user_name'] }}">
+                        <div class="flex-grow-1 bg-body-tertiary p-3 rounded-3">
+                            <h6 class="fw-bold mb-1">{{ $comment['user_name'] }}</h6>
+                            <p class="mb-1">{{ $comment['body'] }}</p>
+                            <small class="text-body-secondary">{{ \Carbon\Carbon::parse($comment['created_at'])->diffForHumans() }}</small>
+                        </div>
+                    </div>
+                    @empty
+                    <div class="text-center text-body-secondary py-4 bg-body-tertiary rounded-3">
+                        <p class="mb-0">Belum ada komentar untuk berita ini. Jadilah yang pertama!</p>
+                    </div>
+                    @endforelse
+                </div>
+            </section>
+        </div>
+
+        <!-- ======================================= -->
+        <!--       KOLOM SIDEBAR (KANAN)             -->
+        <!-- ======================================= -->
+        <div class="col-lg-4">
+            <div class="position-sticky" style="top: 6rem;">
+
+                <!-- Berita Terkait -->
+                <div class="p-4 mb-4 rounded-3 bg-body-tertiary">
+                    <h4 class="fw-bold">Berita Lain di Kategori Ini</h4>
+                    <ul class="list-unstyled mb-0">
+                        @forelse ($otherNews as $item)
+                        <li>
+                            <a href="{{ route('news.show', $item['id']) }}" class="d-flex align-items-center gap-3 py-3 link-body-emphasis text-decoration-none border-top">
+                                <img src="https://lh3.googleusercontent.com/d/{{ $item['gambar'] ?? '' }}"
+                                     width="80" height="60"
+                                     class="object-fit-cover rounded-2"
+                                     alt="{{ $item['judul'] }}"
+                                     onerror="this.onerror=null;this.src='https://placehold.co/100x70/343a40/dee2e6?text=...';">
+                                <small class="fw-semibold">{{ \Illuminate\Support\Str::limit($item['judul'], 55) }}</small>
+                            </a>
+                        </li>
+                        @empty
+                        <li class="border-top pt-3 text-body-secondary">Tidak ada berita terkait lainnya.</li>
+                        @endforelse
+                    </ul>
+                </div>
+
             </div>
         </div>
-
-        <!-- Comments Section -->
-        <div class="mt-5">
-            <h4 class="mb-3">Komentar</h4>
-            <form>
-                <div class="mb-3">
-                    <textarea class="form-control bg-dark text-light border-secondary" rows="4" placeholder="Masukkan komentar..."></textarea>
-                </div>
-                <button type="submit" class="btn btn-success">Kirim</button>
-            </form>
-        </div>
     </div>
-
-    <!-- Footer -->
-    {{-- <footer class="bg-secondary bg-opacity-25 text-center text-light py-4 mt-5 border-top">
-        <div class="container">
-            <p class="mb-0">&copy; 2024 Winnews. All rights reserved.</p>
-        </div>
-    </footer> --}}
-    @include('layouts.footer')
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-
-</html>
+</div>
+@endsection
