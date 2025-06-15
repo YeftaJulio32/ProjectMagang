@@ -1,19 +1,19 @@
-<footer class="bg-dark text-white mt-5">
-    <div class="container py-4">
-        <div class="row">
-            <div class="col-md-5 mb-3 mb-md-0">
-                <a class="navbar-brand fw-bolder fs-2 text-white" href="{{ url('/') }}">Winnews</a>
-                <p class="text-white-50 mt-1">Portal Berita Terkini dan Terpercaya.</p>
+{{-- Footer baru yang lebih ringkas dan minimalis --}}
+<footer class="bg-body-tertiary border-top mt-5">
+    <div class="container py-3">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center">
+
+            <!-- Copyright Info di Kiri -->
+            <div class="text-center text-sm-start mb-2 mb-sm-0">
+                <span class="text-body-secondary small">&copy; {{ date('Y') }} Winnews. All rights reserved.</span>
             </div>
-            <div class="col-md-6 d-flex justify-content-start justify-content-md-end align-items-center">
-                <a href="#" class="text-white-50 me-3 fs-4"><i class="bi bi-instagram"></i></a>
-                <a href="#" class="text-white-50 me-3 fs-4"><i class="bi bi-twitter-x"></i></a>
-                <a href="#" class="text-white-50 fs-4"><i class="bi bi-facebook"></i></a>
+
+            <!-- Ikon Sosial Media di Kanan -->
+            <div class="d-flex">
+                <a href="#" class="text-body-secondary ms-3" title="Instagram"><i class="bi bi-instagram fs-5"></i></a>
+                <a href="#" class="text-body-secondary ms-3" title="Twitter/X"><i class="bi bi-twitter-x fs-5"></i></a>
+                <a href="#" class="text-body-secondary ms-3" title="Facebook"><i class="bi bi-facebook fs-5"></i></a>
             </div>
-        </div>
-        <hr class="text-white-50 mt-3">
-        <div class="text-center text-white-50 small">
-            <p>&copy; {{ date('Y') }} Winnews. All rights reserved.</p>
         </div>
     </div>
 </footer>
