@@ -17,8 +17,8 @@ Pastikan sistem Anda memiliki:
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/YeftaJulio32/ProjectMagang.git
-cd ProjectMagang
+git clone https://github.com/FebriTPP/Winnicode-PortalBerita.git
+cd Winnicode-PortalBerita
 ```
 
 
