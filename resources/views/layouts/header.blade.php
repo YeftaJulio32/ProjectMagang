@@ -10,11 +10,11 @@
 
             <div class="collapse navbar-collapse" id="mainNavbar">
                 {{-- Aksi Pengguna & Pencarian dipindah ke ujung kanan --}}
-                <div class="d-flex align-items-center ms-auto">
+                <div class="d-flex align-items-center ms-auto flex-wrap gap-2">
                     <a href="#" class="btn btn-link text-body-secondary me-2"><i class="bi bi-search fs-5"></i></a>
                     @guest
-                        <a href="{{ route('login') }}" class="btn btn-link text-decoration-none text-body-secondary d-none d-sm-inline">Masuk</a>
-                        <a href="{{ route('register') }}" class="btn btn-primary d-none d-sm-inline">Daftar</a>
+                        <a href="{{ route('login') }}" class="btn btn-link text-decoration-none text-body-secondary">Masuk</a>
+                        <a href="{{ route('register') }}" class="btn btn-primary">Daftar</a>
                     @else
                         <div class="dropdown">
                             <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
@@ -34,7 +34,7 @@
                     @endguest
 
                     <!-- [BARU] Tombol Pengalih Tema Terang/Gelap -->
-                    <button type="button" class="btn btn-outline-secondary ms-2" id="theme-toggle" title="Ganti tema">
+                    <button type="button" class="btn btn-outline-secondary" id="theme-toggle" title="Ganti tema">
                         {{-- Ikon akan diatur oleh JavaScript, 'd-none' menyembunyikan salah satunya --}}
                         <i class="bi bi-moon-stars-fill"></i>
                         <i class="bi bi-sun-fill d-none"></i>
