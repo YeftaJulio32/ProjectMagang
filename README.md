@@ -17,8 +17,8 @@ Pastikan sistem Anda memiliki:
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/FebriTPP/Winnicode-PortalBerita.git
-cd Winnicode-PortalBerita
+git clone https://github.com/FebriTPP/PortalBerita.git
+cd PortalBerita
 ```
 
 
