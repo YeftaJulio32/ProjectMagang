@@ -8,8 +8,16 @@
         <div class="container py-2">
 
             @php
-                $kategoriList = $groupedNews->flatten(1)->pluck('kategori')->unique()->filter()->values();
-                $maxVisible = 11;
+                // Tampilkan semua kategori yang tersedia dari controller
+                $kategoriList = isset($availableCategories) ? $availableCategories : collect();
+
+                // Jika tidak ada dari controller, ambil dari groupedNews sebagai fallback
+                if ($kategoriList->isEmpty()) {
+                    $allNews = $groupedNews->flatten(1);
+                    $kategoriList = $allNews->pluck('kategori')->unique()->filter()->values();
+                }
+
+                $maxVisible = 9;
                 $visibleCategories = $kategoriList->take($maxVisible);
                 $extraCategories = $kategoriList->slice($maxVisible);
             @endphp
@@ -19,7 +27,7 @@
                 <div class="d-block d-md-none overflow-auto">
                     <div class="d-flex flex-nowrap gap-2 pb-1">
                         @foreach ($kategoriList as $kategori)
-                            <a href="{{ url('/kategori/' . \Illuminate\Support\Str::slug($kategori)) }}"
+                            <a href="{{ route('news.kategori', \Illuminate\Support\Str::slug($kategori)) }}"
                                 class="btn btn-sm btn-outline-secondary text-nowrap text-secondary-emphasis">
                                 {{ $kategori }}
                             </a>
@@ -30,7 +38,7 @@
                 {{-- Desktop (md ke atas): Max 9 + Dropdown --}}
                 <div class="d-none d-md-flex justify-content-center flex-wrap gap-2">
                     @foreach ($visibleCategories as $kategori)
-                        <a href="{{ url('/kategori/' . \Illuminate\Support\Str::slug($kategori)) }}"
+                        <a href="{{ route('news.kategori', \Illuminate\Support\Str::slug($kategori)) }}"
                             class="btn btn-sm btn-outline-secondary text-nowrap text-secondary-emphasis">
                             {{ $kategori }}
                         </a>
@@ -38,13 +46,15 @@
 
                     @if ($extraCategories->count())
                         <div class="dropdown">
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                data-bs-toggle="dropdown">
                                 Lainnya
                             </button>
                             <ul class="dropdown-menu">
                                 @foreach ($extraCategories as $kategori)
                                     <li>
-                                        <a class="dropdown-item" href="{{ url('/kategori/' . \Illuminate\Support\Str::slug($kategori)) }}">
+                                        <a class="dropdown-item"
+                                            href="{{ route('news.kategori', \Illuminate\Support\Str::slug($kategori)) }}">
                                             {{ $kategori }}
                                         </a>
                                     </li>
@@ -120,7 +130,7 @@
                                     </a>
                                 </h6>
                                 <div class="d-flex justify-content-between align-items-center mt-3">
-                                    <a href="#"
+                                    <a href="{{ route('news.kategori', \Illuminate\Support\Str::slug($item['kategori'] ?? 'umum')) }}"
                                         class="badge text-bg-primary text-decoration-none">{{ $item['kategori'] ?? 'Umum' }}</a>
                                     <small
                                         class="text-body-secondary">{{ \Carbon\Carbon::parse($item['created_at'] ?? now())->isoFormat('D MMM') }}</small>

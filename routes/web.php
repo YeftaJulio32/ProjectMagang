@@ -19,3 +19,6 @@ Route::get('/', [NewsController::class, 'index'])->name('welcome');
 
 // Detail berita
 Route::get('/berita/{id}', [NewsController::class, 'show'])->name('news.show');
+
+// Kategori berita
+Route::get('/kategori/{kategori}', [NewsController::class, 'kategori'])->name('news.kategori');

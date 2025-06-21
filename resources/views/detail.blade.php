@@ -14,7 +14,7 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ url('/') }}">Home</a></li>
-                        <li class="breadcrumb-item"><a href="#">{{ $news['kategori'] ?? 'Kategori' }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('news.kategori', \Illuminate\Support\Str::slug($news['kategori'] ?? 'umum')) }}">{{ $news['kategori'] ?? 'Kategori' }}</a></li>
                         <li class="breadcrumb-item active" aria-current="page">{{ \Illuminate\Support\Str::limit($news['judul'] ?? '...', 30) }}</li>
                     </ol>
                 </nav>
