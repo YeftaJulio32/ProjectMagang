@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Kategori: ' . ucfirst($kategori))
+@section('title', ucfirst($kategori))
 
 @section('content')
     {{-- Header Kategori --}}
-    <div class="bg-primary text-white py-3">
+    <div class="bg-primary-emphasis text-body-secondary py-3">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col">
@@ -123,32 +123,30 @@
     </div>
 
     {{-- Kategori Lainnya --}}
-    @if ($filteredNews->count() > 0)
-        <div class="bg-body-tertiary border-top mt-5 py-4">
-            <div class="container">
-                <h5 class="fw-bold mb-3">Lihat Juga Kategori Lainnya</h5>
-                <div class="d-flex flex-wrap gap-2">
-                    @php
-                        $currentCategory = strtolower($kategori);
-                    @endphp
+    <div class="bg-body-tertiary border-top mt-5 py-4">
+        <div class="container">
+            <h5 class="fw-bold mb-3">Lihat Juga Kategori Lainnya</h5>
+            <div class="d-flex flex-wrap gap-2">
+                @php
+                    $currentCategory = strtolower($kategori);
+                @endphp
 
-                    @if (isset($availableCategories) && $availableCategories->count() > 0)
-                        @foreach ($availableCategories as $cat)
-                            @if ($cat !== $currentCategory)
-                                <a href="{{ route('news.kategori', \Illuminate\Support\Str::slug($cat)) }}"
-                                    class="btn btn-sm btn-outline-secondary text-nowrap text-secondary-emphasis">
-                                    {{ \Illuminate\Support\Str::title($cat) }}
-                                </a>
-                            @endif
-                        @endforeach
-                    @else
-                        <p class="text-muted small mb-0">
-                            <i class="bi bi-info-circle"></i>
-                            Belum ada kategori tambahan yang tersedia saat ini.
-                        </p>
-                    @endif
-                </div>
+                @if (isset($availableCategories) && $availableCategories->count() > 0)
+                    @foreach ($availableCategories as $cat)
+                        @if ($cat !== $currentCategory)
+                            <a href="{{ route('news.kategori', \Illuminate\Support\Str::slug($cat)) }}"
+                                class="btn btn-sm btn-outline-secondary text-nowrap text-secondary-emphasis">
+                                {{ \Illuminate\Support\Str::title($cat) }}
+                            </a>
+                        @endif
+                    @endforeach
+                @else
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-info-circle"></i>
+                        Belum ada kategori tambahan yang tersedia saat ini.
+                    </p>
+                @endif
             </div>
         </div>
-    @endif
+    </div>
 @endsection

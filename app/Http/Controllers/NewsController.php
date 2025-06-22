@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use App\Models\Comment;
 
 class NewsController extends Controller
 {
@@ -86,9 +87,16 @@ class NewsController extends Controller
             ->values()
             ->all();
 
+        // Ambil komentar untuk berita ini
+        $comments = Comment::where('post_id', $id)
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return view('detail', [
             'news' => $selectedNews,
-            'otherNews' => $otherNews
+            'otherNews' => $otherNews,
+            'comments' => $comments
         ]);
     }
 
