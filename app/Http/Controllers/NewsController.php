@@ -39,7 +39,7 @@ class NewsController extends Controller
 
         if (!$newsResponse->successful()) {
             Log::error('Gagal mengambil data berita', ['response' => $newsResponse->body()]);
-            return view('welcome', [
+            return view('news.index', [
                 'headline' => null,
                 'groupedNews' => collect(),
                 'availableCategories' => collect()
@@ -57,7 +57,7 @@ class NewsController extends Controller
             ->filter()
             ->values();
 
-        return view('welcome', [
+        return view('news.index', [
             'headline' => $headline,
             'groupedNews' => $groupedNews,
             'availableCategories' => $availableCategories
@@ -93,7 +93,7 @@ class NewsController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('detail', [
+        return view('news.show', [
             'news' => $selectedNews,
             'otherNews' => $otherNews,
             'comments' => $comments
@@ -111,7 +111,7 @@ class NewsController extends Controller
         $newsList = $response->successful() ? $response->json() : [];
 
         if (empty($newsList)) {
-            return view('kategori', [
+            return view('news.kategori', [
                 'kategori' => $kategori,
                 'filteredNews' => collect(),
                 'availableCategories' => collect(),
@@ -120,23 +120,40 @@ class NewsController extends Controller
         }
 
         // Filter berita sesuai kategori
+        // Kategori dari URL sudah dalam bentuk slug, jadi kita bandingkan dengan slug dari kategori berita
         $filteredNews = collect($newsList)->filter(function ($news) use ($kategori) {
-            $isInCategory = isset($news['kategori']) && strtolower($news['kategori']) === strtolower($kategori);
-            return $isInCategory;
+            if (!isset($news['kategori'])) {
+                return false;
+            }
+
+            // Ubah kategori berita menjadi slug dan bandingkan dengan parameter kategori
+            $newsKategoriSlug = \Illuminate\Support\Str::slug($news['kategori']);
+            return $newsKategoriSlug === $kategori;
         });
+
+        // Ambil kategori asli untuk ditampilkan (bukan slug)
+        $originalCategory = null;
+        if ($filteredNews->isNotEmpty()) {
+            $originalCategory = $filteredNews->first()['kategori'];
+        } else {
+            // Jika tidak ada berita yang cocok, cari kategori asli dari semua berita
+            foreach (collect($newsList) as $news) {
+                if (isset($news['kategori']) && \Illuminate\Support\Str::slug($news['kategori']) === $kategori) {
+                    $originalCategory = $news['kategori'];
+                    break;
+                }
+            }
+        }
 
         // Ambil semua kategori yang tersedia dari API
         $availableCategories = collect($newsList)
             ->pluck('kategori')
             ->unique()
             ->filter()
-            ->map(function ($cat) {
-                return strtolower($cat);
-            })
             ->values();
 
-        return view('kategori', [
-            'kategori' => $kategori,
+        return view('news.kategori', [
+            'kategori' => $originalCategory ?? ucfirst(str_replace('-', ' ', $kategori)), // Tampilkan kategori asli atau format yang bagus
             'filteredNews' => $filteredNews,
             'availableCategories' => $availableCategories
         ]);

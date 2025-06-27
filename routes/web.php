@@ -16,7 +16,7 @@ Route::post('/register', [RegisterController::class, 'register'])->name('registe
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // 🟢 Ini kita ubah: Homepage diarahkan ke controller
-Route::get('/', [NewsController::class, 'index'])->name('welcome');
+Route::get('/', [NewsController::class, 'index'])->name('news.index');
 
 // Detail berita
 Route::get('/berita/{id}', [NewsController::class, 'show'])->name('news.show');
