@@ -13,10 +13,21 @@
                     <div class="dropdown">
                         <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle"
                             data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle fs-4 text-body-secondary"></i>
+                            @php
+                                $avatar = Auth::user()->avatar_url
+                                    ? Auth::user()->avatar_url
+                                    : asset('/storage/avatars/default-avatar.svg');
+                            @endphp
+                            <img src="{{ $avatar }}" alt="avatar" class="rounded-circle me-1" width="36"
+                                height="36">
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end text-small shadow">
-                            <li><a class="dropdown-item" href="#">Profil</a></li>
+                            @if (Auth::user()->role === 'admin')
+                                <li><a class="dropdown-item"
+                                        href="{{ route('admin.dashboard', Auth::user()->id) }}">Profil</a></li>
+                            @else
+                                <li><a class="dropdown-item" href="{{ route('user.profile.show') }}">Profil</a></li>
+                            @endif
                             <li>
                                 <hr class="dropdown-divider">
                             </li>

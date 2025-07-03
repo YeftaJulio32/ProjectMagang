@@ -11,7 +11,7 @@ class LoginController extends Controller
 {
     public function showLoginForm()
     {
-        return view('Auth.login');
+        return view('auth.login');
     }
 
     public function login(Request $request)
@@ -25,7 +25,13 @@ class LoginController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            return redirect()->intended('/');
+            // Redirect based on user role
+            $user = Auth::user();
+            if ($user->role === 'admin') {
+                return redirect()->intended(route('admin.dashboard'));
+            } else {
+                return redirect()->intended(route('user.profile.show'));
+            }
         }
 
         return back()->withErrors([

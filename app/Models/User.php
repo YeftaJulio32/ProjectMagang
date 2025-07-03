@@ -20,6 +20,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'joined_at',
+        'avatar_url',
     ];
 
     /**
@@ -43,5 +46,18 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get the user's avatar URL with fallback
+     */
+    public function getAvatarUrlAttribute($value)
+    {
+        if ($value) {
+            return $value;
+        }
+
+        // Use default avatar SVG as fallback
+        return '/storage/avatars/default-avatar.svg';
     }
 }
