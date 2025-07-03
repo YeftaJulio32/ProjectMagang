@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
 
 class AdminController extends Controller
@@ -53,9 +55,9 @@ class AdminController extends Controller
         $avatarPath = null;
         if ($request->hasFile('avatar')) {
             $avatar = $request->file('avatar');
-            $avatarName = time() . '_' . $avatar->getClientOriginalName();
-            $avatar->move(public_path('storage/avatars'), $avatarName);
-            $avatarPath = '/storage/avatars/' . $avatarName;
+            $avatarName = time() . '_' . uniqid() . '.' . $avatar->getClientOriginalExtension();
+            $avatarPath = $avatar->storeAs('avatars', $avatarName, 'public');
+            $avatarPath = '/storage/' . $avatarPath;
         }
 
         User::create([
@@ -77,6 +79,18 @@ class AdminController extends Controller
     {
         if ($user->role === 'admin') {
             return redirect()->back()->with('error', 'Tidak dapat menghapus admin!');
+        }
+
+        // Delete avatar if exists (but not default-avatar.svg)
+        if (
+            $user->avatar_url &&
+            strpos($user->avatar_url, '/storage/avatars/') === 0 &&
+            $user->avatar_url !== '/storage/avatars/default-avatar.svg'
+        ) {
+            $avatarPath = str_replace('/storage/', '', $user->avatar_url);
+            if (Storage::disk('public')->exists($avatarPath)) {
+                Storage::disk('public')->delete($avatarPath);
+            }
         }
 
         $user->delete();
@@ -109,20 +123,54 @@ class AdminController extends Controller
         $admin = User::findOrFail($id);
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,' . $admin->id],
             'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
+            'remove_avatar' => ['nullable', 'in:0,1'],
         ]);
 
         $admin->name = $request->name;
-        $admin->email = $request->email;
 
+        // Debug: log request data
+        Log::info('Remove avatar request:', ['remove_avatar' => $request->remove_avatar]);
+
+        // Handle avatar removal
+        if ($request->remove_avatar == '1') {
+            Log::info('Processing avatar removal for admin:', ['id' => $admin->id, 'current_avatar' => $admin->avatar_url]);
+            if (
+                $admin->avatar_url &&
+                strpos($admin->avatar_url, '/storage/avatars/') === 0 &&
+                $admin->avatar_url !== '/storage/avatars/default-avatar.svg'
+            ) {
+                // Delete old avatar file
+                $oldAvatarPath = str_replace('/storage/', '', $admin->avatar_url);
+                if (Storage::disk('public')->exists($oldAvatarPath)) {
+                    Storage::disk('public')->delete($oldAvatarPath);
+                    Log::info('Old avatar deleted:', ['path' => $oldAvatarPath]);
+                }
+            }
+            // Set avatar to null so it will use default
+            $admin->avatar_url = null;
+            Log::info('Avatar set to null');
+        }
         // Handle avatar upload
-        if ($request->hasFile('avatar')) {
+        elseif ($request->hasFile('avatar')) {
+            // Delete old avatar if exists (but not default-avatar.svg)
+            if (
+                $admin->avatar_url &&
+                strpos($admin->avatar_url, '/storage/avatars/') === 0 &&
+                $admin->avatar_url !== '/storage/avatars/default-avatar.svg'
+            ) {
+                $oldAvatarPath = str_replace('/storage/', '', $admin->avatar_url);
+                if (Storage::disk('public')->exists($oldAvatarPath)) {
+                    Storage::disk('public')->delete($oldAvatarPath);
+                }
+            }
+
+            // Upload new avatar
             $avatar = $request->file('avatar');
-            $avatarName = time() . '_' . $avatar->getClientOriginalName();
-            $avatar->move(public_path('storage/avatars'), $avatarName);
-            $admin->avatar_url = '/storage/avatars/' . $avatarName;
+            $avatarName = time() . '_' . uniqid() . '.' . $avatar->getClientOriginalExtension();
+            $avatarPath = $avatar->storeAs('avatars', $avatarName, 'public');
+            $admin->avatar_url = '/storage/' . $avatarPath;
         }
 
         // Handle password update
@@ -132,6 +180,6 @@ class AdminController extends Controller
 
         $admin->save();
 
-        return redirect()->route('admin.profile.show', $admin->id)->with('success',);
+        return redirect()->route('admin.profile.show', $admin->id)->with('success', 'Profil berhasil diperbarui!');
     }
 }

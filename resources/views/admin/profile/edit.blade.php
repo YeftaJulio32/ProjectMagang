@@ -42,19 +42,41 @@
                             </div>
                             <div class="mb-3">
                                 <label for="avatar" class="form-label"><i class="fas fa-image"></i> Foto Profil</label>
+                                @php
+                                    $hasRealAvatar =
+                                        $admin->avatar_url &&
+                                        $admin->avatar_url !== '/storage/avatars/default-avatar.svg' &&
+                                        strpos($admin->avatar_url, '/storage/avatars/') === 0;
+                                @endphp
+                                @if ($hasRealAvatar)
+                                    <div class="mb-3">
+                                        <img src="{{ $admin->avatar_url }}" alt="Avatar saat ini" class="img-thumbnail"
+                                            style="width: 100px; height: 100px; object-fit: cover;" id="current-avatar">
+                                        <small class="d-block text-muted">Avatar saat ini</small>
+                                        <div class="mt-2">
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                onclick="removeAvatar()">
+                                                <i class="fas fa-trash"></i> Hapus Avatar
+                                            </button>
+                                        </div>
+                                    </div>
+                                @endif
                                 <input type="file" class="form-control @error('avatar') is-invalid @enderror"
-                                    id="avatar" name="avatar" accept="image/*">
+                                    name="avatar" accept="image/*" id="avatar-input">
+                                <input type="hidden" name="remove_avatar" id="remove-avatar" value="0">
                                 @error('avatar')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                @if ($admin->avatar_url)
-                                    <div class="mt-2">
-                                        <img src="{{ $admin->avatar_url }}" alt="Avatar" width="80"
-                                            class="rounded-circle border">
-                                    </div>
-                                @endif
                                 <small class="form-text text-muted">Format: JPG, PNG, GIF. Maksimal 2MB</small>
+
+                                <!-- Preview untuk avatar baru -->
+                                <div id="avatar-preview" class="mt-3" style="display: none;">
+                                    <img id="preview-img" class="img-thumbnail"
+                                        style="width: 100px; height: 100px; object-fit: cover;">
+                                    <small class="d-block text-muted">Preview avatar baru</small>
+                                </div>
                             </div>
+
                             <div class="mb-3">
                                 <label for="password" class="form-label"><i class="fas fa-lock"></i> Password Baru</label>
                                 <input type="password" class="form-control @error('password') is-invalid @enderror"
@@ -77,6 +99,7 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+
                             <div class="d-flex justify-content-between">
                                 <a href="{{ route('admin.profile.show', $admin->id) }}" class="btn btn-secondary">
                                     <i class="fas fa-arrow-left"></i> Kembali
@@ -91,4 +114,35 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.getElementById('avatar-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('preview-img').src = e.target.result;
+                    document.getElementById('avatar-preview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+                // Reset remove avatar flag when new file is selected
+                document.getElementById('remove-avatar').value = '0';
+            } else {
+                document.getElementById('avatar-preview').style.display = 'none';
+            }
+        });
+
+        function removeAvatar() {
+            if (confirm('Apakah Anda yakin ingin menghapus avatar?')) {
+                document.getElementById('remove-avatar').value = '1';
+                document.getElementById('avatar-input').value = '';
+                document.getElementById('avatar-preview').style.display = 'none';
+
+                // Hide current avatar and show message
+                const currentAvatarContainer = document.getElementById('current-avatar').parentElement;
+                currentAvatarContainer.innerHTML =
+                    '<small class="text-muted">Avatar akan dihapus setelah menyimpan perubahan</small>';
+            }
+        }
+    </script>
 @endsection

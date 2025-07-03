@@ -22,6 +22,10 @@
                                 height="36">
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end text-small shadow">
+                            <li class="px-3 py-2 border-bottom">
+                                <div class="fw-bold">{{ Auth::user()->name }}</div>
+                                <div class="text-muted small">{{ Auth::user()->email }}</div>
+                            </li>
                             @if (Auth::user()->role === 'admin')
                                 <li><a class="dropdown-item"
                                         href="{{ route('admin.dashboard', Auth::user()->id) }}">Profil</a></li>
