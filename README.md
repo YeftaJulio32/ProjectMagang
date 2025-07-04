@@ -16,7 +16,7 @@ Pastikan sistem Anda memiliki:
 
 ### 1. Clone Repository
 
-
+https://github.com/YeftaJulio32/ProjectMagang.git
 
 ### 2. Instalasi Dependencies
 
