@@ -83,6 +83,14 @@
                         </div>
                     @endif
 
+                    {{-- Tampilkan pesan error --}}
+                    @if (session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
                     <!-- Form untuk Menulis Komentar -->
                     <div class="card mb-4 bg-body-tertiary border-0">
                         <div class="card-body">
@@ -111,6 +119,19 @@
                                     <h6 class="fw-bold mb-1">{{ $comment->user->name ?? 'Anonymous' }}</h6>
                                     <p class="mb-1">{{ $comment->content }}</p>
                                     <small class="text-body-secondary">{{ $comment->created_at->diffForHumans() }}</small>
+                                    @auth
+                                        @if (auth()->user()->id === $comment->user_id || auth()->user()->is_admin)
+                                            <form action="{{ route('comments.destroy', $comment->id) }}" method="POST"
+                                                class="mt-2"
+                                                onsubmit="return confirm('Apakah Anda yakin ingin menghapus komentar ini?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                    <i class="bi bi-trash"></i> Hapus
+                                                </button>
+                                            </form>
+                                        @endif
+                                    @endauth
                                 </div>
                             </div>
                         @empty

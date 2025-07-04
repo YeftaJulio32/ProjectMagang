@@ -28,6 +28,7 @@ Route::get('/berita/{id}', [NewsController::class, 'show'])->name('news.show');
 Route::get('/kategori/{kategori}', [NewsController::class, 'kategori'])->name('news.kategori');
 
 Route::post('/comments', [CommentController::class, 'store'])->name('comments.store')->middleware('auth');
+Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy')->middleware('auth');
 
 // Admin Routes
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {

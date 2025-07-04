@@ -60,4 +60,12 @@ class User extends Authenticatable
         // Use default avatar SVG as fallback
         return '/storage/avatars/default-avatar.svg';
     }
+
+    /**
+     * Check if the user is an admin
+     */
+    public function getIsAdminAttribute()
+    {
+        return $this->role === 'admin';
+    }
 }
