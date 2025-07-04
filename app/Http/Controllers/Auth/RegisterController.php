@@ -11,7 +11,7 @@ class RegisterController extends Controller
 {
     public function showRegistrationForm()
     {
-        return view('Auth.register');
+        return view('auth.register');
     }
 
     public function register(Request $request)
@@ -29,6 +29,7 @@ class RegisterController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => $request->password, // password will be hashed automatically by User model cast
+            'joined_at' => now(),
         ]);
 
         Auth::login($user);

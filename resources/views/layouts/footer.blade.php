@@ -1,15 +1,19 @@
-<footer class="footer">
-    <div class="footer-content">
-        <div class="footer-logo">
-            <img src="{{asset('images/logo1.PNG')}}" alt="Winnews Logo">
-        </div>
-        <div class="social-icons">
-            <a href="#"><i class="fa-brands fa-instagram"></i></a>
-            <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
-            <a href="#"><i class="fa-brands fa-facebook"></i></a>
+{{-- Footer baru yang lebih ringkas dan minimalis --}}
+<footer class="bg-body-tertiary border-top mt-5">
+    <div class="container py-3">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center">
+
+            <!-- Copyright Info di Kiri -->
+            <div class="text-center text-sm-start mb-2 mb-sm-0">
+                <span class="text-body-secondary small">&copy; {{ date('Y') }} Winnews. All rights reserved.</span>
+            </div>
+
+            <!-- Ikon Sosial Media di Kanan -->
+            <div class="d-flex">
+                <a href="#" class="text-body-secondary ms-3" title="Instagram"><i class="bi bi-instagram fs-5"></i></a>
+                <a href="#" class="text-body-secondary ms-3" title="Twitter/X"><i class="bi bi-twitter-x fs-5"></i></a>
+                <a href="#" class="text-body-secondary ms-3" title="Facebook"><i class="bi bi-facebook fs-5"></i></a>
+            </div>
         </div>
     </div>
-    <p class="copyright">
-        Copyright 2025 IN. All rights reserved. The IN is not responsible for the content of external sites.
-    </p>
 </footer>
