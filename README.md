@@ -1,16 +1,16 @@
 # Laravel Project
 
-Proyek Laravel ini dibuat untuk membuat portal berita dengan menggunakan API Winnicode.
+Proyek Laravel ini dibuat untuk membuat portal berita dengan menggunakan API External Winnicode.
 
 ## Persyaratan Sistem
 
 Pastikan sistem Anda memiliki:
 
-- PHP >= 8.1
-- Composer
-- Node.js & NPM
-- MySQL/PostgreSQL/SQLite
-- Web server (Apache/Nginx) atau gunakan built-in server Laravel
+-   PHP >= 8.1
+-   Composer
+-   Node.js & NPM
+-   MySQL/PostgreSQL/SQLite
+-   Web server (Apache/Nginx) atau gunakan built-in server Laravel
 
 ## Instalasi
 
@@ -20,7 +20,6 @@ Pastikan sistem Anda memiliki:
 git clone https://github.com/FebriTPP/PortalBerita.git
 cd PortalBerita
 ```
-
 
 ### 2. Instalasi Dependencies
 
@@ -67,15 +66,23 @@ php artisan migrate
 php artisan db:seed
 ```
 
-### 7. Storage Link (jika menggunakan file upload)
+### 6. Storage Link (jika menggunakan file upload)
 
 ```bash
 php artisan storage:link
 ```
 
+**Catatan:** Pastikan anda memiliki avatar default yang tersedia di direktori `public/storage/avatars` dengan nama `default-avatar.svg`. Jika file tersebut belum ada, tambahkan file avatar default ke lokasi berikut:
+
+```
+public/storage/avatars/default-avatar.svg
+```
+
+File ini akan digunakan sebagai fallback jika pengguna tidak memiliki avatar yang diunggah dan perhatikan namanya.
+
 ## Menjalankan Aplikasi
 
-### Development Server
+### 1. Development Server
 
 ```bash
 php artisan serve

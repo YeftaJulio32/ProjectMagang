@@ -86,7 +86,7 @@ class UserController extends Controller
         // Update user data
         User::where('id', Auth::id())->update($updateData);
 
-        return redirect()->route('user.profile.show')->with('success');
+        return redirect()->route('user.profile.show')->with('success', 'Profil berhasil diperbarui.');
     }
 
     /**
