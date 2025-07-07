@@ -1,11 +1,3 @@
-{{-- <div class="input-group">
-                            <span class="input-group-text bg-dark border-secondary text-white">
-                                <i class="fas fa-search"></i>
-                            </span>
-                            <input type="text" name="search" class="form-control bg-dark text-white border-secondary"
-                                placeholder="Cari pengguna..." value="{{ request('search') }}">
-                        </div> --}}
-
 @extends('layouts.app')
 @section('title', 'Manajemen Pengguna')
 
@@ -29,7 +21,8 @@
                         </div>
                     </form>
                     {{-- Add New --}}
-                    <a href="{{ route('admin.profile.create') }}" class="btn btn-primary fw-semibold d-flex align-items-center">
+                    <a href="{{ route('admin.profile.create') }}"
+                        class="btn btn-primary fw-semibold d-flex align-items-center">
                         <i class="fas fa-plus me-2"></i> Tambah Baru
                     </a>
                 </div>
@@ -52,8 +45,9 @@
                                 @foreach ($users as $user)
                                     <tr class="border-bottom border-0">
                                         <td class="d-flex align-items-center gap-3">
-                                            <img src="{{ $user->avatar_url ?? asset('/storage/avatars/default-avatar.svg') }}"
-                                                alt="avatar" class="rounded-circle object-fit-cover" width="44" height="44">
+                                            <img src="{{ $user->avatar_url ?? asset('/storage/avatars/default-avatar.png') }}"
+                                                alt="avatar" class="rounded-circle object-fit-cover" width="44"
+                                                height="44">
                                             <div>
                                                 <div class="fw-bold text-body">{{ $user->name }}</div>
                                                 <div class="text-muted small">{{ $user->email }}</div>
@@ -81,7 +75,8 @@
                                                         onsubmit="return confirm('Apakah Anda yakin ingin menghapus user ini?')">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Hapus">
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm"
+                                                            title="Hapus">
                                                             <i class="fas fa-trash"></i>
                                                         </button>
                                                     </form>

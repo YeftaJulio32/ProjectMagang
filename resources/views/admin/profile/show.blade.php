@@ -15,15 +15,18 @@
                                 <div class="col-md-4 text-center">
                                     @if ($admin->avatar_url)
                                         <img src="{{ $admin->avatar_url }}" alt="avatar"
-                                            class="rounded-circle mb-2 border object-fit-cover" width="120" height="120">
+                                            class="rounded-circle mb-2 border object-fit-cover" width="120"
+                                            height="120">
                                     @else
-                                        <img src="{{ asset('/storage/avatars/default-avatar.svg') }}" alt="avatar"
-                                            class="rounded-circle mb-2 border object-fit-cover" width="120" height="120">
+                                        <img src="{{ asset('/storage/avatars/default-avatar.png') }}" alt="avatar"
+                                            class="rounded-circle mb-2 border object-fit-cover" width="120"
+                                            height="120">
                                     @endif
                                 </div>
                                 <div class="col-md-8">
                                     <h4 class="fw-bold text-body">{{ $admin->name }}</h4>
-                                    <p class="mb-1"><strong>Email:</strong> <span class="text-body">{{ $admin->email }}</span></p>
+                                    <p class="mb-1"><strong>Email:</strong> <span
+                                            class="text-body">{{ $admin->email }}</span></p>
                                     <p class="mb-1"><strong>Role:</strong>
                                         <span class="badge {{ $admin->role === 'admin' ? 'bg-primary' : 'bg-secondary' }}">
                                             {{ ucfirst($admin->role) }}
@@ -40,7 +43,8 @@
                                 <a href="{{ route('admin.profile.edit', $admin->id) }}" class="btn btn-warning">
                                     <i class="fas fa-user-edit"></i> Edit Profil
                                 </a>
-                                <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary text-secondary-emphasis">
+                                <a href="{{ route('admin.dashboard') }}"
+                                    class="btn btn-outline-secondary text-secondary-emphasis">
                                     <i class="fas fa-arrow-left"></i> Kembali
                                 </a>
                             </div>
