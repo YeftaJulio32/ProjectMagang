@@ -50,9 +50,11 @@ class UserController extends Controller
         // Handle avatar removal
         if ($request->remove_avatar == '1') {
             $currentUser = User::find(Auth::id());
-            if ($currentUser->avatar_url &&
+            if (
+                $currentUser->avatar_url &&
                 strpos($currentUser->avatar_url, '/storage/avatars/') === 0 &&
-                $currentUser->avatar_url !== '/storage/avatars/default-avatar.svg') {
+                $currentUser->avatar_url !== '/storage/avatars/default-avatar.png'
+            ) {
                 // Delete old avatar file
                 $oldAvatarPath = str_replace('/storage/', '', $currentUser->avatar_url);
                 if (Storage::disk('public')->exists($oldAvatarPath)) {
@@ -64,11 +66,13 @@ class UserController extends Controller
         }
         // Handle avatar upload
         elseif ($request->hasFile('avatar')) {
-            // Delete old avatar if exists (but not default-avatar.svg)
+            // Delete old avatar if exists (but not default-avatar.png)
             $currentUser = User::find(Auth::id());
-            if ($currentUser->avatar_url &&
+            if (
+                $currentUser->avatar_url &&
                 strpos($currentUser->avatar_url, '/storage/avatars/') === 0 &&
-                $currentUser->avatar_url !== '/storage/avatars/default-avatar.svg') {
+                $currentUser->avatar_url !== '/storage/avatars/default-avatar.png'
+            ) {
                 // Extract filename from URL path
                 $oldAvatarPath = str_replace('/storage/', '', $currentUser->avatar_url);
                 if (Storage::disk('public')->exists($oldAvatarPath)) {

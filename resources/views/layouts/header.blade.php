@@ -16,7 +16,7 @@
                             @php
                                 $avatar = Auth::user()->avatar_url
                                     ? Auth::user()->avatar_url
-                                    : asset('/storage/avatars/default-avatar.svg');
+                                    : asset('/storage/avatars/default-avatar.png');
                             @endphp
                             <img src="{{ $avatar }}" alt="avatar" class="rounded-circle me-1" width="36"
                                 height="36">

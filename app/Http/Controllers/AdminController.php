@@ -81,11 +81,11 @@ class AdminController extends Controller
             return redirect()->back()->with('error', 'Tidak dapat menghapus admin!');
         }
 
-        // Delete avatar if exists (but not default-avatar.svg)
+        // Delete avatar if exists (but not default-avatar.png)
         if (
             $user->avatar_url &&
             strpos($user->avatar_url, '/storage/avatars/') === 0 &&
-            $user->avatar_url !== '/storage/avatars/default-avatar.svg'
+            $user->avatar_url !== '/storage/avatars/default-avatar.png'
         ) {
             $avatarPath = str_replace('/storage/', '', $user->avatar_url);
             if (Storage::disk('public')->exists($avatarPath)) {
@@ -139,7 +139,7 @@ class AdminController extends Controller
             if (
                 $admin->avatar_url &&
                 strpos($admin->avatar_url, '/storage/avatars/') === 0 &&
-                $admin->avatar_url !== '/storage/avatars/default-avatar.svg'
+                $admin->avatar_url !== '/storage/avatars/default-avatar.png'
             ) {
                 // Delete old avatar file
                 $oldAvatarPath = str_replace('/storage/', '', $admin->avatar_url);
@@ -154,11 +154,11 @@ class AdminController extends Controller
         }
         // Handle avatar upload
         elseif ($request->hasFile('avatar')) {
-            // Delete old avatar if exists (but not default-avatar.svg)
+            // Delete old avatar if exists (but not default-avatar.png)
             if (
                 $admin->avatar_url &&
                 strpos($admin->avatar_url, '/storage/avatars/') === 0 &&
-                $admin->avatar_url !== '/storage/avatars/default-avatar.svg'
+                $admin->avatar_url !== '/storage/avatars/default-avatar.png'
             ) {
                 $oldAvatarPath = str_replace('/storage/', '', $admin->avatar_url);
                 if (Storage::disk('public')->exists($oldAvatarPath)) {

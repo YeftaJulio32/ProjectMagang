@@ -72,10 +72,10 @@ php artisan db:seed
 php artisan storage:link
 ```
 
-**Catatan:** Pastikan anda memiliki avatar default yang tersedia di direktori `public/storage/avatars` dengan nama `default-avatar.svg`. Jika file tersebut belum ada, tambahkan file avatar default ke lokasi berikut:
+**Catatan:** Pastikan anda memiliki avatar default yang tersedia di direktori `public/storage/avatars` dengan nama `default-avatar.png`. Jika file tersebut belum ada, tambahkan file avatar default ke lokasi berikut:
 
 ```
-public/storage/avatars/default-avatar.svg
+public/storage/avatars/default-avatar.png
 ```
 
 File ini akan digunakan sebagai fallback jika pengguna tidak memiliki avatar yang diunggah dan perhatikan namanya.
