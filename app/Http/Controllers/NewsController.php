@@ -28,6 +28,12 @@ class NewsController extends Controller
         });
     }
 
+    private function getNewsList($apiKey)
+    {
+        $response = Http::withToken($apiKey)->get('https://winnicode.com/api/publikasi-berita');
+        return $response->successful() ? collect($response->json()) : collect();
+    }
+
     public function index()
     {
         $apiKey = $this->getApiKey();
@@ -35,10 +41,10 @@ class NewsController extends Controller
             return response()->json(['error' => 'Gagal mendapatkan API Key'], 500);
         }
 
-        $newsResponse = Http::withToken($apiKey)->get('https://winnicode.com/api/publikasi-berita');
+        $newsCollection = $this->getNewsList($apiKey);
 
-        if (!$newsResponse->successful()) {
-            Log::error('Gagal mengambil data berita', ['response' => $newsResponse->body()]);
+        if ($newsCollection->isEmpty()) {
+            Log::error('Gagal mengambil data berita');
             return view('news.index', [
                 'headline' => null,
                 'groupedNews' => collect(),
@@ -46,16 +52,9 @@ class NewsController extends Controller
             ]);
         }
 
-        $newsCollection = collect($newsResponse->json());
         $headline = $newsCollection->first();
         $groupedNews = $newsCollection->slice(1)->groupBy('kategori');
-
-        // Ambil semua kategori yang tersedia dari API
-        $availableCategories = $newsCollection
-            ->pluck('kategori')
-            ->unique()
-            ->filter()
-            ->values();
+        $availableCategories = $newsCollection->pluck('kategori')->unique()->filter()->values();
 
         return view('news.index', [
             'headline' => $headline,
@@ -71,23 +70,21 @@ class NewsController extends Controller
             return abort(500, 'API Key tidak ditemukan');
         }
 
-        $response = Http::withToken($apiKey)->get('https://winnicode.com/api/publikasi-berita');
-        $newsList = $response->successful() ? $response->json() : [];
+        $newsCollection = $this->getNewsList($apiKey);
 
-        $selectedNews = collect($newsList)->firstWhere('id', $id);
+        $selectedNews = $newsCollection->firstWhere('id', $id);
 
         if (!$selectedNews) {
             return abort(404, 'Berita tidak ditemukan');
         }
 
-        $otherNews = collect($newsList)
+        $otherNews = $newsCollection
             ->where('kategori', $selectedNews['kategori'] ?? null)
             ->where('id', '!=', $id)
             ->take(4)
             ->values()
             ->all();
 
-        // Ambil komentar untuk berita ini
         $comments = Comment::where('post_id', $id)
             ->with('user')
             ->orderBy('created_at', 'desc')
@@ -107,10 +104,9 @@ class NewsController extends Controller
             return abort(500, 'API Key tidak ditemukan');
         }
 
-        $response = Http::withToken($apiKey)->get('https://winnicode.com/api/publikasi-berita');
-        $newsList = $response->successful() ? $response->json() : [];
+        $newsCollection = $this->getNewsList($apiKey);
 
-        if (empty($newsList)) {
+        if ($newsCollection->isEmpty()) {
             return view('news.kategori', [
                 'kategori' => $kategori,
                 'filteredNews' => collect(),
@@ -119,41 +115,20 @@ class NewsController extends Controller
             ]);
         }
 
-        // Filter berita sesuai kategori
-        // Kategori dari URL sudah dalam bentuk slug, jadi kita bandingkan dengan slug dari kategori berita
-        $filteredNews = collect($newsList)->filter(function ($news) use ($kategori) {
-            if (!isset($news['kategori'])) {
-                return false;
-            }
-
-            // Ubah kategori berita menjadi slug dan bandingkan dengan parameter kategori
-            $newsKategoriSlug = \Illuminate\Support\Str::slug($news['kategori']);
-            return $newsKategoriSlug === $kategori;
+        $filteredNews = $newsCollection->filter(function ($news) use ($kategori) {
+            return isset($news['kategori']) && \Illuminate\Support\Str::slug($news['kategori']) === $kategori;
         });
 
-        // Ambil kategori asli untuk ditampilkan (bukan slug)
-        $originalCategory = null;
-        if ($filteredNews->isNotEmpty()) {
-            $originalCategory = $filteredNews->first()['kategori'];
-        } else {
-            // Jika tidak ada berita yang cocok, cari kategori asli dari semua berita
-            foreach (collect($newsList) as $news) {
-                if (isset($news['kategori']) && \Illuminate\Support\Str::slug($news['kategori']) === $kategori) {
-                    $originalCategory = $news['kategori'];
-                    break;
-                }
-            }
-        }
+        $originalCategory = $filteredNews->isNotEmpty()
+            ? $filteredNews->first()['kategori']
+            : $newsCollection->first(function ($news) use ($kategori) {
+                return isset($news['kategori']) && \Illuminate\Support\Str::slug($news['kategori']) === $kategori;
+            })['kategori'] ?? null;
 
-        // Ambil semua kategori yang tersedia dari API
-        $availableCategories = collect($newsList)
-            ->pluck('kategori')
-            ->unique()
-            ->filter()
-            ->values();
+        $availableCategories = $newsCollection->pluck('kategori')->unique()->filter()->values();
 
         return view('news.kategori', [
-            'kategori' => $originalCategory ?? ucfirst(str_replace('-', ' ', $kategori)), // Tampilkan kategori asli atau format yang bagus
+            'kategori' => $originalCategory ?? ucfirst(str_replace('-', ' ', $kategori)),
             'filteredNews' => $filteredNews,
             'availableCategories' => $availableCategories
         ]);
