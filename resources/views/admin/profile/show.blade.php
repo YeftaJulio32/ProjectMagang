@@ -40,18 +40,16 @@
                                 </div>
                             </div>
                             <div class="d-flex justify-content-end gap-2 mt-4 flex-wrap">
-                                <a href="{{ route('admin.profile.edit', $admin->id) }}" class="btn btn-warning">
-                                    <i class="fas fa-user-edit"></i> Edit Profil
-                                </a>
-                                @if($admin->role === 'admin')
+                                @if(auth()->check() && auth()->id() === $admin->id && $admin->role === 'admin')
+                                    <a href="{{ route('admin.profile.edit', $admin->id) }}" class="btn btn-warning">
+                                        <i class="fas fa-user-edit"></i> Edit Profil
+                                    </a>
                                     <a href="{{ route('admin.komentar.index') }}" class="btn btn-info text-white">
                                         <i class="fas fa-comments"></i> Manajemen Komentar
                                     </a>
-                                    @if ($admin->role === 'admin')
-                                        <a href="{{ route('admin.profile.create') }}" class="btn btn-success">
-                                            <i class="fas fa-plus"></i> Tambah Pengguna
-                                        </a>
-                                    @endif
+                                    <a href="{{ route('admin.profile.create') }}" class="btn btn-success">
+                                        <i class="fas fa-plus"></i> Tambah Pengguna
+                                    </a>
                                 @endif
                                 <a href="{{ route('admin.dashboard') }}"
                                     class="btn btn-outline-secondary text-secondary-emphasis">
