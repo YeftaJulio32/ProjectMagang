@@ -3,53 +3,72 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\User;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules;
+use App\Models\User;
 use App\Models\Comment;
 
 class AdminController extends Controller
 {
+    private const USERS_PER_PAGE = 10;
+    private const COMMENTS_PER_PAGE = 10;
+    private const MAX_AVATAR_SIZE = 2048; // KB
+    private const ALLOWED_AVATAR_TYPES = ['jpeg', 'png', 'jpg', 'gif'];
+    private const DEFAULT_AVATAR = '/storage/avatars/default-avatar.png';
+    private const AVATAR_STORAGE_PATH = 'avatars';
+
     /**
-     * Show admin dashboard
+     * Show admin dashboard with user management
      */
-    public function dashboard(Request $request)
+    public function dashboard(Request $request): View
     {
-        $query = User::query();
-        if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%$search%")
-                    ->orWhere('email', 'like', "%$search%")
-                    ->orWhere('role', 'like', "%$search%")
-                    ->orWhere('joined_at', 'like', "%$search%")
-                    ->orWhere('id', $search);
-            });
-        }
-        $users = $query->orderByDesc('created_at')->paginate(10);
+        $users = $this->getUsersWithSearch($request->search);
+
         return view('admin.dashboard', compact('users'));
     }
 
-    public function komentarManajemen(Request $request)
+    /**
+     * Show comments management page
+     */
+    public function komentarManajemen(Request $request): View
     {
-        $comments = Comment::with(['user', 'post'])
-            ->when($request->search, function ($query, $search) {
-                $query->whereHas('user', function ($q) use ($search) {
-                    $q->where('name', 'like', "%$search%");
-                });
-            })
-            ->latest()
-            ->paginate(10);
+        $comments = $this->getCommentsWithSearch($request->search);
 
         return view('admin.komentar.index', compact('comments'));
     }
 
     /**
+     * Delete comment (admin only)
+     */
+    public function destroyComment(string $id): RedirectResponse
+    {
+        try {
+            $comment = Comment::findOrFail($id);
+            $comment->delete();
+
+            Log::info('Comment deleted by admin', ['comment_id' => $id]);
+
+            return redirect()->route('admin.komentar.index')
+                           ->with('success', 'Komentar berhasil dihapus!');
+
+        } catch (\Exception $e) {
+            Log::error('Failed to delete comment', ['comment_id' => $id, 'error' => $e->getMessage()]);
+
+            return redirect()->back()
+                           ->with('error', 'Gagal menghapus komentar. Silakan coba lagi.');
+        }
+    }
+
+    /**
      * Show create user form
      */
-    public function createUser()
+    public function createUser(): View
     {
         return view('admin.profile.create');
     }
@@ -57,144 +76,286 @@ class AdminController extends Controller
     /**
      * Store new user
      */
-    public function storeUser(Request $request)
+    public function storeUser(Request $request): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'in:admin,user'],
-            'avatar' => ['nullable', 'image', 'max:2048'],
-        ]);
+        $validatedData = $this->validateUserData($request);
 
-        $avatarPath = null;
-        if ($request->hasFile('avatar')) {
-            $avatar = $request->file('avatar');
-            $avatarName = time() . '_' . uniqid() . '.' . $avatar->getClientOriginalExtension();
-            $avatarPath = $avatar->storeAs('avatars', $avatarName, 'public');
-            $avatarPath = '/storage/' . $avatarPath;
+        try {
+            DB::beginTransaction();
+
+            $avatarPath = $this->handleAvatarUpload($request);
+
+            User::create([
+                'name' => $validatedData['name'],
+                'email' => $validatedData['email'],
+                'password' => Hash::make($validatedData['password']),
+                'role' => $validatedData['role'],
+                'joined_at' => now(),
+                'avatar_url' => $avatarPath,
+                'email_verified_at' => now(),
+            ]);
+
+            DB::commit();
+
+            Log::info('New user created', ['email' => $validatedData['email'], 'role' => $validatedData['role']]);
+
+            return redirect()->route('admin.dashboard')
+                           ->with('success', 'User berhasil ditambahkan!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to create user', ['error' => $e->getMessage()]);
+
+            return redirect()->back()
+                           ->with('error', 'Gagal menambahkan user. Silakan coba lagi.')
+                           ->withInput();
         }
-
-        User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
-            'joined_at' => now(),
-            'avatar_url' => $avatarPath,
-        ]);
-
-        return redirect()->route('admin.dashboard')->with('success', 'User berhasil ditambahkan!');
     }
 
     /**
-     * Delete user
+     * Delete user with security checks
      */
-    public function deleteUser(User $user)
+    public function deleteUser(User $user): RedirectResponse
     {
-        if ($user->role === 'admin') {
-            return redirect()->back()->with('error', 'Tidak dapat menghapus admin!');
+        if ($this->isProtectedUser($user)) {
+            return redirect()->back()
+                           ->with('error', 'Tidak dapat menghapus admin atau user yang dilindungi!');
         }
 
-        // Delete avatar if exists (but not default-avatar.png)
-        if (
-            $user->avatar_url &&
-            strpos($user->avatar_url, '/storage/avatars/') === 0 &&
-            $user->avatar_url !== '/storage/avatars/default-avatar.png'
-        ) {
-            $avatarPath = str_replace('/storage/', '', $user->avatar_url);
-            if (Storage::disk('public')->exists($avatarPath)) {
-                Storage::disk('public')->delete($avatarPath);
-            }
-        }
+        try {
+            DB::beginTransaction();
 
-        $user->delete();
-        return redirect()->route('admin.dashboard')->with('success', 'User berhasil dihapus!');
+            $this->deleteUserAvatar($user);
+            $user->delete();
+
+            DB::commit();
+
+            Log::info('User deleted', ['user_id' => $user->id, 'email' => $user->email]);
+
+            return redirect()->route('admin.dashboard')
+                           ->with('success', 'User berhasil dihapus!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to delete user', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+
+            return redirect()->back()
+                           ->with('error', 'Gagal menghapus user. Silakan coba lagi.');
+        }
     }
 
     /**
      * Show admin profile
      */
-    public function showProfile($id)
+    public function showProfile(int $id): View
     {
-        $admin = User::findOrFail($id);
+        $admin = $this->findUserOrFail($id);
+
         return view('admin.profile.show', compact('admin'));
     }
 
     /**
      * Edit admin profile
      */
-    public function editProfile($id)
+    public function editProfile(int $id): View
     {
-        $admin = User::findOrFail($id);
+        $admin = $this->findUserOrFail($id);
+
         return view('admin.profile.edit', compact('admin'));
     }
 
     /**
      * Update admin profile
      */
-    public function updateProfile(Request $request, $id)
+    public function updateProfile(Request $request, int $id): RedirectResponse
     {
-        $admin = User::findOrFail($id);
-        $request->validate([
+        $admin = $this->findUserOrFail($id);
+        $validatedData = $this->validateProfileData($request);
+
+        try {
+            DB::beginTransaction();
+
+            $admin->name = $validatedData['name'];
+
+            $this->handleProfileAvatarUpdate($request, $admin);
+            $this->handlePasswordUpdate($request, $admin, $validatedData);
+
+            $admin->save();
+
+            DB::commit();
+
+            Log::info('Profile updated', ['user_id' => $admin->id]);
+
+            return redirect()->route('admin.profile.show', $admin->id)
+                           ->with('success', 'Profil berhasil diperbarui!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to update profile', ['user_id' => $admin->id, 'error' => $e->getMessage()]);
+
+            return redirect()->back()
+                           ->with('error', 'Gagal memperbarui profil. Silakan coba lagi.')
+                           ->withInput();
+        }
+    }
+
+    /**
+     * Get users with optional search functionality
+     */
+    private function getUsersWithSearch(?string $search)
+    {
+        $query = User::query();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('role', 'like', "%{$search}%")
+                  ->orWhere('id', $search);
+            });
+        }
+
+        return $query->orderByDesc('created_at')->paginate(self::USERS_PER_PAGE);
+    }
+
+    /**
+     * Get comments with optional search functionality
+     */
+    private function getCommentsWithSearch(?string $search)
+    {
+        return Comment::with(['user'])
+            ->when($search, function ($query, $search) {
+                $query->whereHas('user', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                })->orWhere('content', 'like', "%{$search}%");
+            })
+            ->latest()
+            ->paginate(self::COMMENTS_PER_PAGE);
+    }
+
+    /**
+     * Validate user creation data
+     */
+    private function validateUserData(Request $request): array
+    {
+        return $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'role' => ['required', 'in:admin,user'],
+            'avatar' => ['nullable', 'image', 'mimes:' . implode(',', self::ALLOWED_AVATAR_TYPES), 'max:' . self::MAX_AVATAR_SIZE],
+        ]);
+    }
+
+    /**
+     * Validate profile update data
+     */
+    private function validateProfileData(Request $request): array
+    {
+        return $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'avatar' => ['nullable', 'image', 'mimes:' . implode(',', self::ALLOWED_AVATAR_TYPES), 'max:' . self::MAX_AVATAR_SIZE],
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
             'remove_avatar' => ['nullable', 'in:0,1'],
         ]);
+    }
 
-        $admin->name = $request->name;
+    /**
+     * Handle avatar upload for new user
+     */
+    private function handleAvatarUpload(Request $request): ?string
+    {
+        if (!$request->hasFile('avatar')) {
+            return null;
+        }
 
-        // Debug: log request data
-        Log::info('Remove avatar request:', ['remove_avatar' => $request->remove_avatar]);
+        $avatar = $request->file('avatar');
+        $avatarName = time() . '_' . uniqid() . '.' . $avatar->getClientOriginalExtension();
+        $avatarPath = $avatar->storeAs(self::AVATAR_STORAGE_PATH, $avatarName, 'public');
 
-        // Handle avatar removal
+        return '/storage/' . $avatarPath;
+    }
+
+    /**
+     * Handle avatar operations during profile update
+     */
+    private function handleProfileAvatarUpdate(Request $request, User $user): void
+    {
         if ($request->remove_avatar == '1') {
-            Log::info('Processing avatar removal for admin:', ['id' => $admin->id, 'current_avatar' => $admin->avatar_url]);
-            if (
-                $admin->avatar_url &&
-                strpos($admin->avatar_url, '/storage/avatars/') === 0 &&
-                $admin->avatar_url !== '/storage/avatars/default-avatar.png'
-            ) {
-                // Delete old avatar file
-                $oldAvatarPath = str_replace('/storage/', '', $admin->avatar_url);
-                if (Storage::disk('public')->exists($oldAvatarPath)) {
-                    Storage::disk('public')->delete($oldAvatarPath);
-                    Log::info('Old avatar deleted:', ['path' => $oldAvatarPath]);
-                }
-            }
-            // Set avatar to null so it will use default
-            $admin->avatar_url = null;
-            Log::info('Avatar set to null');
+            $this->removeUserAvatar($user);
+        } elseif ($request->hasFile('avatar')) {
+            $this->deleteUserAvatar($user);
+            $user->avatar_url = $this->handleAvatarUpload($request);
         }
-        // Handle avatar upload
-        elseif ($request->hasFile('avatar')) {
-            // Delete old avatar if exists (but not default-avatar.png)
-            if (
-                $admin->avatar_url &&
-                strpos($admin->avatar_url, '/storage/avatars/') === 0 &&
-                $admin->avatar_url !== '/storage/avatars/default-avatar.png'
-            ) {
-                $oldAvatarPath = str_replace('/storage/', '', $admin->avatar_url);
-                if (Storage::disk('public')->exists($oldAvatarPath)) {
-                    Storage::disk('public')->delete($oldAvatarPath);
-                }
-            }
+    }
 
-            // Upload new avatar
-            $avatar = $request->file('avatar');
-            $avatarName = time() . '_' . uniqid() . '.' . $avatar->getClientOriginalExtension();
-            $avatarPath = $avatar->storeAs('avatars', $avatarName, 'public');
-            $admin->avatar_url = '/storage/' . $avatarPath;
+    /**
+     * Remove user avatar (set to null)
+     */
+    private function removeUserAvatar(User $user): void
+    {
+        if ($this->hasCustomAvatar($user)) {
+            $this->deleteAvatarFile($user->avatar_url);
         }
+        $user->avatar_url = null;
+    }
 
-        // Handle password update
-        if ($request->filled('password')) {
-            $admin->password = Hash::make($request->password);
+    /**
+     * Delete user avatar file and record
+     */
+    private function deleteUserAvatar(User $user): void
+    {
+        if ($this->hasCustomAvatar($user)) {
+            $this->deleteAvatarFile($user->avatar_url);
         }
+    }
 
-        $admin->save();
+    /**
+     * Delete avatar file from storage
+     */
+    private function deleteAvatarFile(string $avatarUrl): void
+    {
+        $avatarPath = str_replace('/storage/', '', $avatarUrl);
 
-        return redirect()->route('admin.profile.show', $admin->id)->with('success', 'Profil berhasil diperbarui!');
+        if (Storage::disk('public')->exists($avatarPath)) {
+            Storage::disk('public')->delete($avatarPath);
+        }
+    }
+
+    /**
+     * Check if user has custom avatar (not default)
+     */
+    private function hasCustomAvatar(User $user): bool
+    {
+        return $user->avatar_url
+               && strpos($user->avatar_url, '/storage/' . self::AVATAR_STORAGE_PATH . '/') === 0
+               && $user->avatar_url !== self::DEFAULT_AVATAR;
+    }
+
+    /**
+     * Handle password update
+     */
+    private function handlePasswordUpdate(Request $request, User $user, array $validatedData): void
+    {
+        if (!empty($validatedData['password'])) {
+            $user->password = Hash::make($validatedData['password']);
+        }
+    }
+
+    /**
+     * Check if user is protected from deletion
+     */
+    private function isProtectedUser(User $user): bool
+    {
+        // Protect admin users and current authenticated user
+        return $user->role === 'admin' || $user->id === Auth::id();
+    }
+
+    /**
+     * Find user by ID or fail
+     */
+    private function findUserOrFail(int $id): User
+    {
+        return User::findOrFail($id);
     }
 }
