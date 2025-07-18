@@ -20,11 +20,6 @@
                                 placeholder="Cari pengguna..." value="{{ request('search') }}">
                         </div>
                     </form>
-                    {{-- Add New --}}
-                    <a href="{{ route('admin.profile.create') }}"
-                        class="btn btn-primary fw-semibold d-flex align-items-center">
-                        <i class="fas fa-plus me-2"></i> Tambah Baru
-                    </a>
                 </div>
             </div>
 

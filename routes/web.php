@@ -50,11 +50,15 @@ Route::middleware(['auth', 'role:user'])->prefix('user')->group(function () {
     Route::post('/profile/password', [UserController::class, 'updatePassword'])->name('profile.password');
 });
 
+Route::get('/admin/komentar', [AdminController::class, 'komentarManajemen'])->name('admin.komentar');
+
+Route::delete('/admin/komentar/{id}', [CommentController::class, 'destroy'])->name('admin.komentar.destroy');
+
 // Dashboard Route - Redirect based on role
 Route::get('/dashboard', function () {
     if (Auth::check()) {
         if (Auth::user()->role === 'admin') {
-            return redirect()->route('admin.dashboard');
+            return redirect()->route('admin.komentar');
         } else {
             return redirect()->route('user.profile.show');
         }
