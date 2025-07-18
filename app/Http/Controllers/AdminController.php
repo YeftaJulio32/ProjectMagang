@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
+use App\Models\Comment;
 
 class AdminController extends Controller
 {
@@ -29,6 +30,20 @@ class AdminController extends Controller
         }
         $users = $query->orderByDesc('created_at')->paginate(10);
         return view('admin.dashboard', compact('users'));
+    }
+
+    public function komentarManajemen(Request $request)
+    {
+        $comments = Comment::with(['user', 'post'])
+            ->when($request->search, function ($query, $search) {
+                $query->whereHas('user', function ($q) use ($search) {
+                    $q->where('name', 'like', "%$search%");
+                });
+            })
+            ->latest()
+            ->paginate(10);
+
+        return view('admin.komentar.index', compact('comments'));
     }
 
     /**
