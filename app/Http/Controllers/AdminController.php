@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rules;
 use App\Models\User;
 use App\Models\Comment;
@@ -40,7 +42,10 @@ class AdminController extends Controller
     {
         $comments = $this->getCommentsWithSearch($request->search);
 
-        return view('admin.komentar.index', compact('comments'));
+        // Get news data from API to match with comments
+        $newsData = $this->getNewsDataForComments($comments);
+
+        return view('admin.komentar.index', compact('comments', 'newsData'));
     }
 
     /**
@@ -231,6 +236,58 @@ class AdminController extends Controller
             })
             ->latest()
             ->paginate(self::COMMENTS_PER_PAGE);
+    }
+
+    /**
+     * Get news data for comments from external API
+     */
+    private function getNewsDataForComments($comments): array
+    {
+        $newsData = [];
+
+        // Get unique post IDs from comments
+        $postIds = $comments->pluck('post_id')->unique()->toArray();
+
+        if (empty($postIds)) {
+            return $newsData;
+        }
+
+        try {
+            // Get API key
+            $apiKey = Cache::remember('winnicode_api_key', 3600, function () {
+                $response = Http::timeout(10)->post('https://winnicode.com/api/login', [
+                    'email' => 'dummy@dummy.com',
+                    'password' => 'dummy'
+                ]);
+
+                return $response->successful() ? $response->json()['api_key'] ?? null : null;
+            });
+
+            if (!$apiKey) {
+                return $newsData;
+            }
+
+            // Fetch news data
+            $response = Http::withToken($apiKey)
+                ->timeout(10)
+                ->get('https://winnicode.com/api/publikasi-berita');
+
+            if ($response->successful()) {
+                $allNews = $response->json();
+
+                // Create associative array with post_id as key
+                foreach ($allNews as $news) {
+                    if (in_array($news['id'], $postIds)) {
+                        $newsData[$news['id']] = $news;
+                    }
+                }
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch news data for comments', ['error' => $e->getMessage()]);
+        }
+
+        return $newsData;
     }
 
     /**

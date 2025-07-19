@@ -34,10 +34,11 @@
                         <table class="table table-hover align-middle mb-0 text-body">
                             <thead class="border-bottom border-secondary">
                                 <tr>
-                                    <th class="fw-semibold" width="20%">User</th>
-                                    <th class="fw-semibold" width="50%">Komentar</th>
-                                    <th class="fw-semibold" width="15%">Tanggal</th>
-                                    <th class="fw-semibold text-center" width="15%">Aksi</th>
+                                    <th class="fw-semibold" width="18%">User</th>
+                                    <th class="fw-semibold" width="25%">Judul Berita</th>
+                                    <th class="fw-semibold" width="32%">Komentar</th>
+                                    <th class="fw-semibold" width="12%">Tanggal</th>
+                                    <th class="fw-semibold text-center" width="13%">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -57,8 +58,23 @@
                                             </div>
                                         </td>
                                         <td>
+                                            @if(isset($newsData[$komen->post_id]))
+                                                <div class="news-title" title="{{ $newsData[$komen->post_id]['judul'] ?? 'Tidak diketahui' }}">
+                                                    <a href="{{ route('news.show', $komen->post_id) }}" class="text-decoration-none text-primary fw-semibold" target="_blank">
+                                                        {{ Str::limit($newsData[$komen->post_id]['judul'] ?? 'Tidak diketahui', 60) }}
+                                                    </a>
+                                                    <br>
+                                                    <small class="text-muted">{{ $newsData[$komen->post_id]['kategori'] ?? '' }}</small>
+                                                </div>
+                                            @else
+                                                <div class="news-title text-danger fw-semibold" title="Berita tidak ditemukan di API">
+                                                    <i class="fas fa-exclamation-circle me-1"></i> Berita tidak ditemukan atau sudah dihapus
+                                                </div>
+                                            @endif
+                                        </td>
+                                        <td>
                                             <div class="comment-text" title="{{ $komen->content }}">
-                                                {{ Str::limit($komen->content, 100) }}
+                                                {{ Str::limit($komen->content, 80) }}
                                             </div>
                                         </td>
                                         <td class="small text-muted">
@@ -96,7 +112,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center py-5">
+                                        <td colspan="5" class="text-center py-5">
                                             <div class="empty-state">
                                                 <i class="fas fa-comments fa-3x text-muted mb-3"></i>
                                                 <p class="text-muted mb-0">Belum ada komentar yang tersedia.</p>
@@ -135,6 +151,15 @@
             word-wrap: break-word;
             line-height: 1.4;
             cursor: pointer;
+        }
+
+        .news-title {
+            word-wrap: break-word;
+            line-height: 1.3;
+        }
+
+        .news-title a:hover {
+            text-decoration: underline !important;
         }
 
         .empty-state {
