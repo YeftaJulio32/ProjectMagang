@@ -99,34 +99,53 @@
                                     @csrf
                                     <input type="hidden" name="post_id" value="{{ $news['id'] }}">
                                     <div class="mb-3">
-                                        <textarea name="content" class="form-control" rows="3" placeholder="Tulis komentar Anda..." required></textarea>
+                                        <textarea name="content" class="form-control @error('content') is-invalid @enderror"
+                                                rows="3" placeholder="Tulis komentar Anda..." required>{{ old('content') }}</textarea>
+                                        @error('content')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
-                                    <button type="submit" class="btn btn-primary">Kirim Komentar</button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-send"></i> Kirim Komentar
+                                    </button>
                                 </form>
                             @else
-                                <p class="text-muted">Silakan <a href="{{ route('login') }}">login</a> untuk menulis komentar.
+                                <p class="text-muted">
+                                    Silakan <a href="{{ route('login') }}" class="text-decoration-none">login</a>
+                                    untuk menulis komentar.
                                 </p>
                             @endauth
                         </div>
-                    </div> <!-- Daftar Komentar yang Sudah Ada -->
+                    <!-- Daftar Komentar yang Sudah Ada -->
                     <div class="d-flex flex-column gap-4">
                         {{-- Tampilkan komentar dari database --}}
                         @forelse ($comments ?? [] as $comment)
                             <div class="d-flex gap-3">
-                                <img src="https://placehold.co/50x50/dee2e6/343a40?text={{ strtoupper(substr($comment->user->name ?? 'A', 0, 1)) }}"
-                                    class="rounded-circle" alt="{{ $comment->user->name ?? 'Anonymous' }}">
+                                @if($comment->user && $comment->user->avatar_url)
+                                    <img src="{{ $comment->user->avatar_url }}"
+                                         class="rounded-circle" width="50" height="50"
+                                         alt="{{ $comment->user->name ?? 'Anonymous' }}"
+                                         style="object-fit: cover;">
+                                @else
+                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white fw-bold"
+                                         style="width: 50px; height: 50px;">
+                                        {{ strtoupper(substr($comment->user->name ?? 'A', 0, 1)) }}
+                                    </div>
+                                @endif
                                 <div class="flex-grow-1 bg-body-tertiary p-3 rounded-3">
-                                    <h6 class="fw-bold mb-1">{{ $comment->user->name ?? 'Anonymous' }}</h6>
-                                    <p class="mb-1">{{ $comment->content }}</p>
-                                    <small class="text-body-secondary">{{ $comment->created_at->diffForHumans() }}</small>
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h6 class="fw-bold mb-1">{{ $comment->user->name ?? 'Anonymous' }}</h6>
+                                        <small class="text-body-secondary">{{ $comment->created_at->diffForHumans() }}</small>
+                                    </div>
+                                    <p class="mb-2">{{ $comment->content }}</p>
                                     @auth
-                                        @if (auth()->user()->id === $comment->user_id || auth()->user()->is_admin)
+                                        @if (auth()->user()->id === $comment->user_id || (auth()->user()->role ?? null) === 'admin')
                                             <form action="{{ route('comments.destroy', $comment->id) }}" method="POST"
                                                 class="mt-2"
                                                 onsubmit="return confirm('Apakah Anda yakin ingin menghapus komentar ini?')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm">
                                                     <i class="bi bi-trash"></i> Hapus
                                                 </button>
                                             </form>
@@ -136,6 +155,7 @@
                             </div>
                         @empty
                             <div class="text-center text-body-secondary py-4 bg-body-tertiary rounded-3">
+                                <i class="bi bi-chat-dots fs-1 mb-3 d-block"></i>
                                 <p class="mb-0">Belum ada komentar untuk berita ini. Jadilah yang pertama!</p>
                             </div>
                         @endforelse

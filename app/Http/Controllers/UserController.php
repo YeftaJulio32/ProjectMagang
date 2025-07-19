@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules;
 use App\Models\User;
-use App\Models\Komentar;
+use App\Models\Comment;
 
 class UserController extends Controller
 {
