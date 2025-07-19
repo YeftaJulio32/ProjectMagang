@@ -1,4 +1,4 @@
-[⚠️ Suspicious Content] # Laravel Project
+Laravel Project
 Proyek Laravel ini dibuat untuk membuat portal berita dengan menggunakan API External Winnicode.
 
 ## Persyaratan Sistem
