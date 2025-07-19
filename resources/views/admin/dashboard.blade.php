@@ -29,7 +29,7 @@
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0 text-body">
                             <thead>
-                                <tr class="border-bottom border-secondary">
+                                <tr >
                                     <th class="fw-semibold">Pengguna</th>
                                     <th class="fw-semibold">Tanggal Bergabung</th>
                                     <th class="fw-semibold">Peran</th>
@@ -38,14 +38,22 @@
                             </thead>
                             <tbody>
                                 @foreach ($users as $user)
-                                    <tr class="border-bottom border-0">
-                                        <td class="d-flex align-items-center gap-3">
-                                            <img src="{{ $user->avatar_url ?? asset('/storage/avatars/default-avatar.png') }}"
-                                                alt="avatar" class="rounded-circle object-fit-cover" width="44"
-                                                height="44">
-                                            <div>
-                                                <div class="fw-bold text-body">{{ $user->name }}</div>
-                                                <div class="text-muted small">{{ $user->email }}</div>
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-3">
+                                                @if ($user->avatar_url)
+                                                    <img src="{{ $user->avatar_url }}"
+                                                        alt="avatar" class="rounded-circle object-fit-cover" width="44"
+                                                        height="44">
+                                                @else
+                                                    <div class="avatar-circle">
+                                                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                                                    </div>
+                                                @endif
+                                                <div>
+                                                    <div class="fw-bold text-body">{{ $user->name }}</div>
+                                                    <div class="text-muted small">{{ $user->email }}</div>
+                                                </div>
                                             </div>
                                         </td>
                                         <td class="small">
