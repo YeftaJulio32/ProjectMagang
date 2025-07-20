@@ -29,7 +29,7 @@
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0 text-body">
                             <thead>
-                                <tr >
+                                <tr>
                                     <th class="fw-semibold">Pengguna</th>
                                     <th class="fw-semibold">Tanggal Bergabung</th>
                                     <th class="fw-semibold">Peran</th>
