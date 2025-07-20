@@ -11,7 +11,7 @@
                 </div>
                 <div class="col-lg-6 col-sm-12 d-flex justify-content-lg-end flex-wrap gap-2">
                     <form method="GET" class="d-flex gap-2" action="">
-                        <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari user/komentar..." value="{{ request('search') }}" aria-label="Cari komentar">
+                        <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari user/komentar..." value="{{ request('search') }}">
                         <button class="btn btn-outline-info btn-sm" type="submit"><i class="fas fa-search"></i></button>
                     </form>
                     <span class="badge bg-info text-dark align-self-center">
@@ -20,7 +20,7 @@
                 </div>
             </div>
 
-            {{-- Table Card --}}
+            {{-- Table --}}
             <div class="card bg-body text-body border-0">
                 <div class="card-body px-0">
                     @if(session('success'))
@@ -34,48 +34,48 @@
                         <table class="table table-hover align-middle mb-0 text-body">
                             <thead class="border-bottom border-secondary">
                                 <tr>
-                                    <th class="fw-semibold" width="18%">User</th>
-                                    <th class="fw-semibold" width="25%">Judul Berita</th>
-                                    <th class="fw-semibold" width="32%">Komentar</th>
-                                    <th class="fw-semibold" width="12%">Tanggal</th>
-                                    <th class="fw-semibold text-center" width="13%">Aksi</th>
+                                    <th width="18%">User</th>
+                                    <th width="25%">Judul Berita</th>
+                                    <th width="32%">Komentar</th>
+                                    <th width="12%">Tanggal</th>
+                                    <th width="13%" class="text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($comments as $komen)
-                                    <tr class="border-bottom border-0">
-                                        <td class="d-flex align-items-center gap-2">
-                                            @if($komen->user && $komen->user->avatar_url)
-                                                <img src="{{ $komen->user->avatar_url }}" alt="avatar" class="rounded-circle border object-fit-cover" width="32" height="32">
-                                            @else
-                                                <div class="avatar-circle" title="{{ $komen->user->name ?? 'User Tidak Diketahui' }}">
-                                                    {{ substr($komen->user->name ?? 'U', 0, 1) }}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                @if($komen->user && $komen->user->avatar_url)
+                                                    <img src="{{ $komen->user->avatar_url }}" alt="avatar" class="rounded-circle border object-fit-cover" width="32" height="32">
+                                                @else
+                                                    <div class="avatar-circle" title="{{ $komen->user->name ?? 'User Tidak Diketahui' }}">
+                                                        {{ substr($komen->user->name ?? 'U', 0, 1) }}
+                                                    </div>
+                                                @endif
+                                                <div>
+                                                    <div class="fw-bold">{{ $komen->user->name ?? 'User Tidak Diketahui' }}</div>
+                                                    <div class="small text-muted">{{ $komen->user->email ?? '-' }}</div>
                                                 </div>
-                                            @endif
-                                            <div>
-                                                <div class="fw-bold">{{ $komen->user->name ?? 'User Tidak Diketahui' }}</div>
-                                                <div class="small text-muted">{{ $komen->user->email ?? '-' }}</div>
                                             </div>
                                         </td>
                                         <td>
                                             @if(isset($newsData[$komen->post_id]))
-                                                <div class="news-title" title="{{ $newsData[$komen->post_id]['judul'] ?? 'Tidak diketahui' }}">
+                                                <div class="news-title" title="{{ $newsData[$komen->post_id]['judul'] }}">
                                                     <a href="{{ route('news.show', $komen->post_id) }}" class="text-decoration-none text-primary fw-semibold" target="_blank">
-                                                        {{ Str::limit($newsData[$komen->post_id]['judul'] ?? 'Tidak diketahui', 60) }}
+                                                        {{ Str::limit($newsData[$komen->post_id]['judul'], 60) }}
                                                     </a>
                                                     <br>
                                                     <small class="text-muted">{{ $newsData[$komen->post_id]['kategori'] ?? '' }}</small>
                                                 </div>
                                             @else
-                                                <div class="news-title text-danger fw-semibold" title="Berita tidak ditemukan di API">
-                                                    <i class="fas fa-exclamation-circle me-1"></i> Berita tidak ditemukan atau sudah dihapus
+                                                <div class="text-danger fw-semibold" title="Berita tidak ditemukan di API">
+                                                    <i class="fas fa-exclamation-circle me-1"></i> Berita tidak ditemukan
                                                 </div>
                                             @endif
                                         </td>
-                                        <td>
-                                            <div class="comment-text" title="{{ $komen->content }}">
-                                                {{ Str::limit($komen->content, 80) }}
-                                            </div>
+                                        <td title="{{ $komen->content }}">
+                                            {{ Str::limit($komen->content, 80) }}
                                         </td>
                                         <td class="small text-muted">
                                             {{ $komen->created_at->format('d M Y') }}<br>
@@ -85,6 +85,7 @@
                                             <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $komen->id }}" title="Hapus komentar">
                                                 <i class="fas fa-trash"></i>
                                             </button>
+
                                             <!-- Modal -->
                                             <div class="modal fade" id="deleteModal{{ $komen->id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ $komen->id }}" aria-hidden="true">
                                                 <div class="modal-dialog modal-dialog-centered">
@@ -98,7 +99,7 @@
                                                             <span class="text-muted small">"{{ Str::limit($komen->content, 80) }}"</span>
                                                         </div>
                                                         <div class="modal-footer">
-                                                            <form action="{{ route('admin.komentar.destroy', $komen->id) }}" method="POST" class="d-inline">
+                                                            <form action="{{ route('admin.komentar.destroy', $komen->id) }}" method="POST">
                                                                 @csrf
                                                                 @method('DELETE')
                                                                 <button type="submit" class="btn btn-danger">Hapus</button>
@@ -132,38 +133,4 @@
             </div>
         </div>
     </div>
-
-    <style>
-        .avatar-circle {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background-color: #6c757d;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .comment-text {
-            word-wrap: break-word;
-            line-height: 1.4;
-            cursor: pointer;
-        }
-
-        .news-title {
-            word-wrap: break-word;
-            line-height: 1.3;
-        }
-
-        .news-title a:hover {
-            text-decoration: underline !important;
-        }
-
-        .empty-state {
-            padding: 2rem;
-        }
-    </style>
 @endsection

@@ -1,0 +1,26 @@
+/* Untuk Dashboard Admin */
+.table thead tr th {
+    border-bottom: 1px solid #dee2e6 !important; /* konsisten */
+}
+
+.table tbody tr {
+    border-bottom: 1px solid #f1f1f1; /* garis lembut antar baris */
+    transition: background-color 0.2s ease-in-out;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa; /* efek hover */
+}
+
+.avatar-circle {
+    width: 44px;
+    height: 44px;
+    background-color: #dee2e6;
+    color: #495057;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 16px;
+}
