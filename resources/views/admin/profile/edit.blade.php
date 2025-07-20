@@ -78,9 +78,9 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="password" class="form-label"><i class="fas fa-lock"></i> Password Baru</label>
+                                <label for="new_password" class="form-label"><i class="fas fa-lock"></i> Password Baru</label>
                                 <input type="password" class="form-control @error('password') is-invalid @enderror"
-                                    id="password" name="password"
+                                    id="new_password" name="password"
                                     placeholder="Kosongkan jika tidak ingin mengubah password">
                                 @error('password')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -89,11 +89,11 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="password_confirmation" class="form-label"><i class="fas fa-lock"></i> Konfirmasi
+                                <label for="new_password_confirmation" class="form-label"><i class="fas fa-lock"></i> Konfirmasi
                                     Password Baru</label>
                                 <input type="password"
                                     class="form-control @error('password_confirmation') is-invalid @enderror"
-                                    id="password_confirmation" name="password_confirmation"
+                                    id="new_password_confirmation" name="password_confirmation"
                                     placeholder="Konfirmasi password baru">
                                 @error('password_confirmation')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -144,5 +144,61 @@
                     '<small class="text-muted">Avatar akan dihapus setelah menyimpan perubahan</small>';
             }
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const newPassword = document.getElementById('new_password');
+            const confirmPassword = document.getElementById('new_password_confirmation');
+            const submitButton = document.querySelector('button[type="submit"]');
+
+            function validatePasswords() {
+                if (newPassword.value && confirmPassword.value) {
+                    if (newPassword.value !== confirmPassword.value) {
+                        confirmPassword.classList.add('is-invalid');
+                        confirmPassword.classList.remove('is-valid');
+
+                        // Hapus feedback lama jika ada
+                        const existingFeedback = confirmPassword.parentNode.querySelector(
+                            '.password-mismatch-feedback');
+                        if (existingFeedback) {
+                            existingFeedback.remove();
+                        }
+
+                        // Tambahkan feedback baru
+                        const feedback = document.createElement('div');
+                        feedback.className = 'invalid-feedback password-mismatch-feedback';
+                        feedback.textContent = 'Password dan konfirmasi password tidak sama';
+                        confirmPassword.parentNode.appendChild(feedback);
+
+                        submitButton.disabled = true;
+                    } else {
+                        confirmPassword.classList.remove('is-invalid');
+                        confirmPassword.classList.add('is-valid');
+
+                        // Hapus feedback mismatch
+                        const existingFeedback = confirmPassword.parentNode.querySelector(
+                            '.password-mismatch-feedback');
+                        if (existingFeedback) {
+                            existingFeedback.remove();
+                        }
+
+                        submitButton.disabled = false;
+                    }
+                } else {
+                    confirmPassword.classList.remove('is-invalid', 'is-valid');
+
+                    // Hapus feedback mismatch
+                    const existingFeedback = confirmPassword.parentNode.querySelector(
+                    '.password-mismatch-feedback');
+                    if (existingFeedback) {
+                        existingFeedback.remove();
+                    }
+
+                    submitButton.disabled = false;
+                }
+            }
+
+            newPassword.addEventListener('input', validatePasswords);
+            confirmPassword.addEventListener('input', validatePasswords);
+        });
     </script>
 @endsection

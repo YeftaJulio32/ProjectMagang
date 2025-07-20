@@ -312,8 +312,12 @@ class AdminController extends Controller
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'avatar' => ['nullable', 'image', 'mimes:' . implode(',', self::ALLOWED_AVATAR_TYPES), 'max:' . self::MAX_AVATAR_SIZE],
-            'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
+            'password' => ['nullable', 'confirmed', 'min:8', Rules\Password::defaults()],
+            'password_confirmation' => ['nullable'],
             'remove_avatar' => ['nullable', 'in:0,1'],
+        ], [
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+            'password.min' => 'Password minimal 8 karakter.',
         ]);
     }
 
