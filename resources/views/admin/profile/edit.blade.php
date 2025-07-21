@@ -78,6 +78,16 @@
                             </div>
 
                             <div class="mb-3">
+                                <label for="current_password" class="form-label"><i class="fas fa-lock"></i> Password Saat Ini</label>
+                                <input type="password" class="form-control @error('current_password') is-invalid @enderror"
+                                    id="current_password" name="current_password" required
+                                    placeholder="Masukkan password saat ini">
+                                @error('current_password')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="mb-3">
                                 <label for="new_password" class="form-label"><i class="fas fa-lock"></i> Password Baru</label>
                                 <input type="password" class="form-control @error('password') is-invalid @enderror"
                                     id="new_password" name="password"

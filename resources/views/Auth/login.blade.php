@@ -40,10 +40,15 @@
                     @enderror
                 </div>
 
-                <div class="mb-2">
+                <div class="mb-3">
                     <label for="password" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="password" name="password"
-                        placeholder="********" required>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="password" name="password"
+                            placeholder="********" required>
+                        <span class="input-group-text" style="cursor:pointer" onclick="togglePassword('password', this)">
+                            <i class="fa fa-eye"></i>
+                        </span>
+                    </div>
                 </div>
 
                 {{-- 🔗 Tombol Lupa Password --}}
@@ -53,8 +58,10 @@
                     </a>
                 </div>
 
-                <button type="submit" class="btn btn-dark w-100">Sign In</button>
-                <a href="{{ url('/') }}" class="btn btn-secondary mt-3 w-100">Cancel</a>
+                <div class="d-flex gap-2">
+                    <a href="{{ url('/') }}" class="btn btn-outline-secondary w-100">Cancel</a>
+                    <button type="submit" class="btn btn-primary w-100">Sign In</button>
+                </div>
             </form>
 
             <p class="text-center mt-3">
@@ -62,6 +69,22 @@
             </p>
         </div>
     </div>
+
+    <script>
+        function togglePassword(inputId, el) {
+            const input = document.getElementById(inputId);
+            const icon = el.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
 </body>
 
 </html>
