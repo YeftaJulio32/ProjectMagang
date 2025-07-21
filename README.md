@@ -12,13 +12,7 @@ Pastikan sistem Anda memiliki:
 ## Instalasi
 
 ### 1. Clone Repository
-```bash
-git clone https://github.com/FebriTPP/PortalBerita.git
-```
 
-```bash
-cd PortalBerita
-```
 
 ### 2. Instalasi Dependencies
 

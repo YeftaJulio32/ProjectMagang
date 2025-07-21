@@ -19,6 +19,13 @@
             style="max-width: 400px; width: 100%; border-radius: 16px; background-color: #ffffff">
             <h2 class="mb-4 text-center">Sign in</h2>
 
+            {{-- Flash message success dari reset password --}}
+            @if (session('status'))
+                <div class="alert alert-success text-sm">
+                    {{ session('status') }}
+                </div>
+            @endif
+
             <form method="POST" action="{{ route('login.post') }}">
                 @csrf
 
@@ -33,10 +40,17 @@
                     @enderror
                 </div>
 
-                <div class="mb-3">
+                <div class="mb-2">
                     <label for="password" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="password" name="password" placeholder="********"
-                        required>
+                    <input type="password" class="form-control" id="password" name="password"
+                        placeholder="********" required>
+                </div>
+
+                {{-- 🔗 Tombol Lupa Password --}}
+                <div class="mb-3 text-end">
+                    <a href="{{ route('password.request') }}" class="text-decoration-none text-sm">
+                        Lupa password?
+                    </a>
                 </div>
 
                 <button type="submit" class="btn btn-dark w-100">Sign In</button>
