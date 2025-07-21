@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class RegisterController extends Controller
 {
@@ -25,15 +25,14 @@ class RegisterController extends Controller
             'password.min' => 'Password harus memiliki minimal 8 karakter.',
         ]);
 
-        $user = User::create([
+        User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => $request->password, // password will be hashed automatically by User model cast
+            'password' => Hash::make($request->password), // hash password
             'joined_at' => now(),
         ]);
 
-        Auth::login($user);
-
-        return redirect('/'); // redirect to home or dashboard after registration
+        // Redirect ke halaman login, bukan auto login
+        return redirect()->route('login')->with('success', 'Akun berhasil dibuat! Silakan login.');
     }
 }

@@ -8,6 +8,10 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Password;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
+
 
 // Auth Routes
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
@@ -53,6 +57,13 @@ Route::middleware(['auth', 'role:user'])->prefix('user')->group(function () {
 Route::get('/admin/komentar', [AdminController::class, 'komentarManajemen'])->name('admin.komentar.index');
 
 Route::delete('/admin/komentar/{id}', [AdminController::class, 'destroyComment'])->name('admin.komentar.destroy');
+
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+
+Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
 
 // Dashboard Route - Redirect based on role
 Route::get('/dashboard', function () {
