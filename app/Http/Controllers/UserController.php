@@ -3,19 +3,28 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
 use App\Models\User;
 use App\Models\Comment;
 
 class UserController extends Controller
 {
+    private const MAX_AVATAR_SIZE = 2048; // KB
+    private const ALLOWED_AVATAR_TYPES = ['jpeg', 'png', 'jpg', 'gif'];
+    private const DEFAULT_AVATAR = '/storage/avatars/default-avatar.png';
+    private const AVATAR_STORAGE_PATH = 'avatars';
+
     /**
      * Show user dashboard
      */
-    public function dashboard()
+    public function dashboard(): View
     {
         return view('user.dashboard', [
             'user' => Auth::user(),
@@ -25,7 +34,7 @@ class UserController extends Controller
     /**
      * Show edit profile form
      */
-    public function editProfile()
+    public function editProfile(): View
     {
         return view('user.dashboard', [
             'user' => Auth::user(),
@@ -35,69 +44,41 @@ class UserController extends Controller
     /**
      * Update profile
      */
-    public function updateProfile(Request $request)
+    public function updateProfile(Request $request): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
-            'remove_avatar' => ['nullable', 'in:0,1'],
-        ]);
+        $validatedData = $this->validateProfileData($request);
 
-        $user = Auth::user();
-        $updateData = [
-            'name' => $request->name,
-        ];
+        try {
+            DB::beginTransaction();
 
-        // Handle avatar removal
-        if ($request->remove_avatar == '1') {
-            $currentUser = User::find(Auth::id());
-            if (
-                $currentUser->avatar_url &&
-                strpos($currentUser->avatar_url, '/storage/avatars/') === 0 &&
-                $currentUser->avatar_url !== '/storage/avatars/default-avatar.png'
-            ) {
-                // Delete old avatar file
-                $oldAvatarPath = str_replace('/storage/', '', $currentUser->avatar_url);
-                if (Storage::disk('public')->exists($oldAvatarPath)) {
-                    Storage::disk('public')->delete($oldAvatarPath);
-                }
-            }
-            // Set avatar to null so it will use default
-            $updateData['avatar_url'] = null;
+            $user = Auth::user();
+            $updateData = ['name' => $validatedData['name']];
+
+            $this->handleAvatarUpdate($request, $user, $updateData);
+
+            User::where('id', $user->id)->update($updateData);
+
+            DB::commit();
+
+            Log::info('Profile updated', ['user_id' => $user->id]);
+
+            return redirect()->route('user.profile.show')
+                           ->with('success', 'Profil berhasil diperbarui.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to update profile', ['user_id' => Auth::id(), 'error' => $e->getMessage()]);
+
+            return redirect()->back()
+                           ->with('error', 'Gagal memperbarui profil. Silakan coba lagi.')
+                           ->withInput();
         }
-        // Handle avatar upload
-        elseif ($request->hasFile('avatar')) {
-            // Delete old avatar if exists (but not default-avatar.png)
-            $currentUser = User::find(Auth::id());
-            if (
-                $currentUser->avatar_url &&
-                strpos($currentUser->avatar_url, '/storage/avatars/') === 0 &&
-                $currentUser->avatar_url !== '/storage/avatars/default-avatar.png'
-            ) {
-                // Extract filename from URL path
-                $oldAvatarPath = str_replace('/storage/', '', $currentUser->avatar_url);
-                if (Storage::disk('public')->exists($oldAvatarPath)) {
-                    Storage::disk('public')->delete($oldAvatarPath);
-                }
-            }
-
-            // Upload new avatar
-            $avatar = $request->file('avatar');
-            $avatarName = time() . '_' . uniqid() . '.' . $avatar->getClientOriginalExtension();
-            $avatarPath = $avatar->storeAs('avatars', $avatarName, 'public');
-            $updateData['avatar_url'] = '/storage/' . $avatarPath;
-        }
-
-        // Update user data
-        User::where('id', Auth::id())->update($updateData);
-
-        return redirect()->route('user.profile.show')->with('success', 'Profil berhasil diperbarui.');
     }
 
     /**
      * Show change password form
      */
-    public function changePassword()
+    public function changePassword(): View
     {
         return view('user.dashboard', [
             'user' => Auth::user(),
@@ -107,21 +88,127 @@ class UserController extends Controller
     /**
      * Update password
      */
-    public function updatePassword(Request $request)
+    public function updatePassword(Request $request): RedirectResponse
     {
-        $request->validate([
-            'current_password' => ['required'],
-            'new_password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+        $validatedData = $this->validatePasswordData($request);
 
-        if (!Hash::check($request->current_password, Auth::user()->password)) {
+        if (!$this->verifyCurrentPassword($validatedData['current_password'])) {
             return back()->withErrors(['current_password' => 'Password saat ini tidak sesuai']);
         }
 
-        User::where('id', Auth::id())->update([
-            'password' => Hash::make($request->new_password)
-        ]);
+        try {
+            User::where('id', Auth::id())->update([
+                'password' => Hash::make($validatedData['new_password'])
+            ]);
 
-        return redirect()->route('user.profile.show')->with('success', 'Password berhasil diubah!');
+            Log::info('Password updated', ['user_id' => Auth::id()]);
+
+            return redirect()->route('user.profile.show')
+                           ->with('success', 'Password berhasil diubah!');
+
+        } catch (\Exception $e) {
+            Log::error('Failed to update password', ['user_id' => Auth::id(), 'error' => $e->getMessage()]);
+
+            return redirect()->back()
+                           ->with('error', 'Gagal mengubah password. Silakan coba lagi.');
+        }
+    }
+
+    /**
+     * Validate profile update data
+     */
+    private function validateProfileData(Request $request): array
+    {
+        return $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'avatar' => ['nullable', 'image', 'mimes:' . implode(',', self::ALLOWED_AVATAR_TYPES), 'max:' . self::MAX_AVATAR_SIZE],
+            'remove_avatar' => ['nullable', 'in:0,1'],
+        ]);
+    }
+
+    /**
+     * Validate password update data
+     */
+    private function validatePasswordData(Request $request): array
+    {
+        return $request->validate([
+            'current_password' => ['required'],
+            'new_password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+    }
+
+    /**
+     * Verify current password
+     */
+    private function verifyCurrentPassword(string $currentPassword): bool
+    {
+        return Hash::check($currentPassword, Auth::user()->password);
+    }
+
+    /**
+     * Handle avatar upload/removal operations
+     */
+    private function handleAvatarUpdate(Request $request, User $user, array &$updateData): void
+    {
+        if ($request->remove_avatar == '1') {
+            $this->removeUserAvatar($user);
+            $updateData['avatar_url'] = null;
+        } elseif ($request->hasFile('avatar')) {
+            $this->deleteUserAvatar($user);
+            $updateData['avatar_url'] = $this->uploadNewAvatar($request->file('avatar'));
+        }
+    }
+
+    /**
+     * Remove user avatar (delete file)
+     */
+    private function removeUserAvatar(User $user): void
+    {
+        if ($this->hasCustomAvatar($user)) {
+            $this->deleteAvatarFile($user->avatar_url);
+        }
+    }
+
+    /**
+     * Delete user's current avatar file
+     */
+    private function deleteUserAvatar(User $user): void
+    {
+        if ($this->hasCustomAvatar($user)) {
+            $this->deleteAvatarFile($user->avatar_url);
+        }
+    }
+
+    /**
+     * Upload new avatar file
+     */
+    private function uploadNewAvatar($avatarFile): string
+    {
+        $avatarName = time() . '_' . uniqid() . '.' . $avatarFile->getClientOriginalExtension();
+        $avatarPath = $avatarFile->storeAs(self::AVATAR_STORAGE_PATH, $avatarName, 'public');
+
+        return '/storage/' . $avatarPath;
+    }
+
+    /**
+     * Delete avatar file from storage
+     */
+    private function deleteAvatarFile(string $avatarUrl): void
+    {
+        $avatarPath = str_replace('/storage/', '', $avatarUrl);
+
+        if (Storage::disk('public')->exists($avatarPath)) {
+            Storage::disk('public')->delete($avatarPath);
+        }
+    }
+
+    /**
+     * Check if user has custom avatar (not default)
+     */
+    private function hasCustomAvatar(User $user): bool
+    {
+        return $user->avatar_url
+               && strpos($user->avatar_url, '/storage/' . self::AVATAR_STORAGE_PATH . '/') === 0
+               && $user->avatar_url !== self::DEFAULT_AVATAR;
     }
 }
